@@ -21,7 +21,7 @@ How to install
 If you don't have the Go toolset installed, and you don't want to, but
 still want to use the app, you can download binaries for your platform
 on the [releases
-page](https://github.com/aktau/github-release/releases). Yes, that's
+page](https://github.com/aktau/github-release/releases/latest). Yes, that's
 dogfooding, check the makefile!
 
 If you have Go installed, you can just do:
