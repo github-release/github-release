@@ -41,12 +41,13 @@ $ github-release upload --user aktau \
     --file bin/darwin/amd64/gofinance
 
 # upload other files...
-```
+$ github-release upload ...
 
 # you're not happy with it, so delete it
 $ github-release delete --user aktau \
     --repo gofinance \
     --tag v0.1.0
+```
 
 Copyright
 =========
