@@ -15,6 +15,7 @@ import (
 type Options struct {
 	Help      goptions.Help `goptions:"-h, --help, description='Show this help'"`
 	Verbosity []bool        `goptions:"-v, --verbose, description='Be verbose'"`
+	Quiet     bool          `goptions:"-q, --quiet, description='Do not print anything, even errors (except if --verbose is specified)'"`
 
 	goptions.Verbs
 	Upload struct {
@@ -82,7 +83,9 @@ func main() {
 	if cmd, found := commands[options.Verbs]; found {
 		err := cmd(options)
 		if err != nil {
-			fmt.Println("error:", err)
+			if !options.Quiet {
+				fmt.Println("error:", err)
+			}
 			os.Exit(1)
 		}
 	}
