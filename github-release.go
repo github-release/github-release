@@ -42,6 +42,11 @@ type Options struct {
 		Repo  string `goptions:"-r, --repo, description='Github repo (required if $GITHUB_REPO not set)'"`
 		Tag   string `goptions:"-t, --tag, obligatory, description='Git tag to create a release from'"`
 	} `goptions:"delete"`
+	Info struct {
+		User string `goptions:"-u, --user, description='Github user (required if $GITHUB_USER not set)'"`
+		Repo string `goptions:"-r, --repo, description='Github repo (required if $GITHUB_REPO not set)'"`
+		Tag  string `goptions:"-t, --tag, description='Git tag to query (optional)'"`
+	} `goptions:"info"`
 }
 
 type Command func(Options) error
@@ -50,6 +55,7 @@ var commands = map[goptions.Verbs]Command{
 	"upload":  uploadcmd,
 	"release": releasecmd,
 	"delete":  deletecmd,
+	"info":    infocmd,
 }
 
 var (
@@ -89,6 +95,53 @@ func main() {
 			os.Exit(1)
 		}
 	}
+}
+
+func infocmd(opt Options) error {
+	user := nvls(opt.Info.User, EnvUser)
+	repo := nvls(opt.Info.Repo, EnvRepo)
+	tag := opt.Upload.Tag
+
+	if user == "" || repo == "" {
+		return fmt.Errorf("user and repo need to be passed as arguments")
+	}
+
+	/* list all tags */
+	tags, err := Tags(user, repo)
+	if err != nil {
+		return fmt.Errorf("could not fetch tags, %v", err)
+	}
+
+	fmt.Println("git tags:")
+	for _, tag := range tags {
+		fmt.Println("-", tag.String())
+	}
+
+	/* list releases + assets */
+	fmt.Println("releases:")
+	var releases []Release
+	if tag == "" {
+		/* get all releases */
+		vprintf("%v/%v: getting information for all releases\n", user, repo)
+		releases, err = Releases(user, repo)
+		if err != nil {
+			return err
+		}
+	} else {
+		/* get only one release */
+		vprintf("%v/%v/%v: getting information for the release\n", user, repo, tag)
+		release, err := ReleaseOfTag(user, repo, tag)
+		if err != nil {
+			return err
+		}
+		releases = []Release{*release}
+	}
+
+	for _, release := range releases {
+		fmt.Println("-", release.String())
+	}
+
+	return nil
 }
 
 func uploadcmd(opt Options) error {

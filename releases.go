@@ -2,7 +2,9 @@ package main
 
 import (
 	"fmt"
+	"github.com/dustin/go-humanize"
 	"strings"
+	"time"
 )
 
 const (
@@ -10,12 +12,18 @@ const (
 )
 
 type Release struct {
-	Url       string  `json:"url"`
-	UploadUrl string  `json:"upload_url"`
-	Id        int     `json:"id"`
-	Name      string  `json:"name"`
-	TagName   string  `json:"tag_name"`
-	Assets    []Asset `json:"assets"`
+	Url         string    `json:"url"`
+	PageUrl     string    `json:"html_url"`
+	UploadUrl   string    `json:"upload_url"`
+	Id          int       `json:"id"`
+	Name        string    `json:"name"`
+	Description string    `json:"body"`
+	TagName     string    `json:"tag_name"`
+	Draft       bool      `json:"draft"`
+	Prerelease  bool      `json:"prerelease"`
+	Created     time.Time `json:"created_at"`
+	Published   time.Time `json:"published_at"`
+	Assets      []Asset   `json:"assets"`
 }
 
 func (r *Release) CleanUploadUrl() string {
@@ -26,6 +34,26 @@ func (r *Release) CleanUploadUrl() string {
 	}
 
 	return r.UploadUrl[0:bracket]
+}
+
+func (r *Release) String() string {
+	const format = "02/01/2006 at 15:04"
+
+	str := make([]string, len(r.Assets)+1)
+	str[0] = fmt.Sprintf(
+		"%5s, name: '%s', description: '%s', id: %d, tagged: %s, published: %s, draft: %v, prerelease: %v",
+		r.TagName, r.Name, r.Description, r.Id,
+		r.Created.Format(format),
+		r.Published.Format(format),
+		Mark(r.Draft), Mark(r.Prerelease))
+
+	for idx, asset := range r.Assets {
+		str[idx+1] = fmt.Sprintf("  - artifact: %s, downloads: %d, state: %s, type: %s, size: %s, id: %d",
+			asset.Name, asset.Downloads, asset.State, asset.ContentType,
+			humanize.Bytes(asset.Size), asset.Id)
+	}
+
+	return strings.Join(str, "\n")
 }
 
 type ReleaseCreate struct {

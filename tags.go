@@ -15,6 +15,10 @@ type Tag struct {
 	TarBallUrl string `json:"tarball_url"`
 }
 
+func (t *Tag) String() string {
+	return t.Name + " (commit: " + t.Commit.Url + ")"
+}
+
 /* get the tags associated with a repo */
 func Tags(user, repo string) ([]Tag, error) {
 	var tags []Tag
