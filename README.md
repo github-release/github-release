@@ -15,7 +15,13 @@ artifact. `github-release` takes care of those little details.
 How to install
 ==============
 
-If you already have Go, you can just do:
+If you don't have the Go toolset installed, and you don't want to, but
+still want to use the app, you can download binaries for your platform
+on the [releases
+page](https://github.com/aktau/github-release/releases). Yes, that's
+dogfooding, check the makefile!
+
+If you have Go installed, you can just do:
 
 ```sh
 go get github.com/aktau/github-release
@@ -84,6 +90,11 @@ Used libraries
 | Package | Description | License |
 | --- | --- | --- |
 | [github.com/dustin/go-humanize](https://github.com/dustin/go-humanize) | humanize file sizes | MIT |
+
+Todo
+====
+
+- Check if an artifact is already uploaded before starting a new upload
 
 Copyright
 =========
