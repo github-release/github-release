@@ -25,11 +25,14 @@ func NewAuthRequest(method, url, bodyType, token string, body io.Reader) (*http.
 	if body != nil {
 		switch v := body.(type) {
 		case *os.File:
-			/* apparently chunking doesnt work yet...
-			 * vprintln("OS.FILE detected, chunking!", v)
-			 * req.TransferEncoding = []string{"chunked"} */
-
-			/* then we explicitly read the file... (let's hope it's not stdin) */
+			/* when uploading a file, you need to either excplicitly set the
+			 * Content-Length header or send a chunked request. Since the
+			 * github upload server doesn't accept chunked encoding, we have
+			 * to set the size of the file manually. If the file is actually
+			 * stdin, this won't work, and we'll just quit for now.
+			 *
+			 * TODO: if stdin, read everything into a byte buffer, take the
+			 * length and send it. */
 			off, err := GetFileSize(v)
 			if err != nil {
 				return nil, err
