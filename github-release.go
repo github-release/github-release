@@ -31,7 +31,7 @@ type Options struct {
 		Repo       string `goptions:"-r, --repo, description='Github repo (required if $GITHUB_REPO not set)'"`
 		Tag        string `goptions:"-t, --tag, obligatory, description='Git tag to create a release from'"`
 		Name       string `goptions:"-n, --name, description='Name of the release (defaults to tag)'"`
-		Desc       string `goptions:"-d, --description, description='Description of the release (defauls to tag)'"`
+		Desc       string `goptions:"-d, --description, description='Description of the release (defaults to tag)'"`
 		Draft      bool   `goptions:"--draft, description='The release is a draft'"`
 		Prerelease bool   `goptions:"-p, --pre-release, description='The release is a pre-release'"`
 	} `goptions:"release"`
@@ -267,23 +267,10 @@ func deletecmd(opt Options) error {
 }
 
 func httpDelete(url, token string) (*http.Response, error) {
-	req, err := NewAuthRequest("DELETE", url, "application/json", token, nil)
-	if err != nil {
-		return nil, err
-	}
-
-	// req.Close = true
-	// req.Header.Set("Accept", "application/vnd.github.manifold-preview")
-
-	resp, err := http.DefaultClient.Do(req)
+	resp, err := DoAuthRequest("DELETE", url, "application/json", token, nil)
 	if err != nil {
 		return nil, err
 	}
 
 	return resp, nil
-}
-
-/* fetches the id that corresponds to a tag */
-func idOfTag(tag string) int {
-	return 0
 }

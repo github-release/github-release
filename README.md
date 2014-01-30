@@ -43,6 +43,11 @@ $ github-release upload --user aktau \
 # upload other files...
 ```
 
+# you're not happy with it, so delete it
+$ github-release delete --user aktau \
+    --repo gofinance \
+    --tag v0.1.0
+
 Copyright
 =========
 
