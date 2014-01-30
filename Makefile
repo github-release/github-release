@@ -5,14 +5,15 @@ EXECUTABLE := github-release
 
 # only include the amd64 binaries, otherwise the github release will become
 # too big
-EXECUTABLES := \
+UNIX_EXECUTABLES := \
 	darwin/amd64/$(EXECUTABLE) \
 	freebsd/amd64/$(EXECUTABLE) \
-	linux/amd64/$(EXECUTABLE) \
-	windows/amd64/$(EXECUTABLE)
+	linux/amd64/$(EXECUTABLE)
+WIN_EXECUTABLES := \
+	windows/amd64/$(EXECUTABLE).exe
 
-COMPRESSED_EXECUTABLES=$(EXECUTABLES:%=%.tar.bz2)
-COMPRESSED_EXECUTABLE_TARGETS=$(EXECUTABLES:%=bin/%.tar.bz2)
+COMPRESSED_EXECUTABLES=$(UNIX_EXECUTABLES:%=%.tar.bz2) $(WIN_EXECUTABLES:%.exe=%.zip)
+COMPRESSED_EXECUTABLE_TARGETS=$(COMPRESSED_EXECUTABLES:%=bin/%)
 
 UPLOAD_CMD = bin/tmp/$(EXECUTABLE) upload -u $(USER) -r $(EXECUTABLE) -t $(LAST_TAG) -n $(subst /,-,$(FILE)) -f bin/$(FILE)
 
@@ -41,13 +42,15 @@ bin/darwin/amd64/$(EXECUTABLE):
 	GOARCH=amd64 GOOS=darwin go build -o "$@"
 bin/linux/amd64/$(EXECUTABLE):
 	GOARCH=amd64 GOOS=linux go build -o "$@"
-bin/windows/amd64/$(EXECUTABLE):
+bin/windows/amd64/$(EXECUTABLE).exe:
 	GOARCH=amd64 GOOS=windows go build -o "$@"
 
 # compressed artifacts, makes a huge difference (Go executable is ~9MB,
 # after compressing ~2MB)
 %.tar.bz2: %
 	tar -jcvf "$<.tar.bz2" "$<"
+%.zip: %.exe
+	zip "$@" "$<"
 
 # git tag -a v$(RELEASE) -m 'release $(RELEASE)'
 release: bin/tmp/$(EXECUTABLE) $(COMPRESSED_EXECUTABLE_TARGETS)
