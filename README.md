@@ -12,6 +12,9 @@ really that user-friendly. For example, you need to first query the API
 to find the id of the release you want, before you can upload an
 artifact. `github-release` takes care of those little details.
 
+It might still be a bit rough around the edges, pull requests are
+welcome!
+
 How to install
 ==============
 
@@ -37,7 +40,9 @@ How to use
 
 **NOTE**: for these examples I've [created a github
 token](https://help.github.com/articles/creating-an-access-token-for-command-line-use)
-and set in as the environment variable `$GITHUB_TOKEN`.
+and set it as the env variable `GITHUB_TOKEN`. `github-release` will
+automatically pick it up from the environment so that you don't have to
+pass it as an argument.
 
 ```sh
 # set your token
