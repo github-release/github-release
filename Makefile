@@ -17,6 +17,8 @@ COMPRESSED_EXECUTABLE_TARGETS=$(COMPRESSED_EXECUTABLES:%=bin/%)
 
 UPLOAD_CMD = bin/tmp/$(EXECUTABLE) upload -u $(USER) -r $(EXECUTABLE) -t $(LAST_TAG) -n $(subst /,-,$(FILE)) -f bin/$(FILE)
 
+all: $(EXECUTABLE)
+
 # the executable used to perform the upload, dogfooding and all...
 bin/tmp/$(EXECUTABLE):
 	go build -o "$@"
@@ -59,7 +61,21 @@ release: bin/tmp/$(EXECUTABLE) $(COMPRESSED_EXECUTABLE_TARGETS)
 		-t $(LAST_TAG) -n $(LAST_TAG) || true
 	$(foreach FILE,$(COMPRESSED_EXECUTABLES),$(UPLOAD_CMD);)
 
+# install and/or update all dependencies, run this from the project directory
+# go get -u ./...
+# go test -i ./
+dep:
+	go list -f '{{join .Deps "\n"}}' | xargs go list -f '{{if not .Standard}}{{.ImportPath}}{{end}}' | xargs go get -u
+
+$(EXECUTABLE): dep
+	go build
+
+install:
+	go install
+
 clean:
+	rm go-app || true
+	rm $(EXECUTABLE) || true
 	rm -rf bin/
 
-.PHONY: clean release
+.PHONY: clean release dep
