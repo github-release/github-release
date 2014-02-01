@@ -78,4 +78,4 @@ clean:
 	rm $(EXECUTABLE) || true
 	rm -rf bin/
 
-.PHONY: clean release dep
+.PHONY: clean release dep install
