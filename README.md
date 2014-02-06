@@ -89,6 +89,14 @@ $ github-release delete \
     --tag v0.1.0
 ```
 
+GitHub Enterprise Support
+=========================
+You can point to a different GitHub API endpoint via the environment variable ```GITHUB_API_URL```:
+
+```
+export GITHUB_API_URL=http://github.company.com/api/v3
+```
+
 Used libraries
 ==============
 

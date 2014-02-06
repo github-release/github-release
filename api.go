@@ -64,13 +64,13 @@ func DoAuthRequest(method, url, bodyType, token string, body io.Reader) (*http.R
 }
 
 func GithubGet(uri string, v interface{}) error {
-	resp, err := http.Get(API_URL + uri)
+	resp, err := http.Get(apiURL() + uri)
 	if err != nil {
 		return fmt.Errorf("could not fetch releases, %v", err)
 	}
 	defer resp.Body.Close()
 
-	vprintln("GET", API_URL+uri, "->", resp)
+	vprintln("GET", apiURL()+uri, "->", resp)
 
 	if resp.StatusCode != http.StatusOK {
 		return fmt.Errorf("github did not response with 200 OK but with %v", resp.Status)
@@ -90,4 +90,13 @@ func GithubGet(uri string, v interface{}) error {
 	}
 
 	return nil
+}
+
+func apiURL() string {
+	url := os.Getenv("GITHUB_API_URL")
+	if url == "" {
+		return API_URL
+	} else {
+		return url
+	}
 }
