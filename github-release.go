@@ -66,12 +66,14 @@ var (
 	EnvToken string
 	EnvUser  string
 	EnvRepo  string
+	EnvApiEndpoint string
 )
 
 func init() {
 	EnvToken = os.Getenv("GITHUB_TOKEN")
 	EnvUser = os.Getenv("GITHUB_USER")
 	EnvRepo = os.Getenv("GITHUB_REPO")
+	EnvApiEndpoint = os.Getenv("GITHUB_API")
 }
 
 func main() {
@@ -170,6 +172,7 @@ func uploadcmd(opt Options) error {
 
 	v := url.Values{}
 	v.Set("name", name)
+
 	url := rel.CleanUploadUrl() + "?" + v.Encode()
 
 	resp, err := DoAuthRequest("POST", url, "application/octet-stream",
@@ -269,7 +272,7 @@ func releasecmd(opt Options) error {
 	}
 
 	uri := fmt.Sprintf("/repos/%s/%s/releases", user, repo)
-	resp, err := DoAuthRequest("POST", API_URL+uri, "application/json", token, reader)
+	resp, err := DoAuthRequest("POST", ApiURL()+uri, "application/json", token, reader)
 	if err != nil {
 		return fmt.Errorf("while submitting %v, %v", rawjson, err)
 	}
@@ -307,7 +310,7 @@ func deletecmd(opt Options) error {
 
 	vprintf("release %v has id %v\n", tag, id)
 
-	resp, err := httpDelete(API_URL+fmt.Sprintf("/repos/%s/%s/releases/%d",
+	resp, err := httpDelete(ApiURL()+fmt.Sprintf("/repos/%s/%s/releases/%d",
 		user, repo, id), token)
 	if err != nil {
 		return fmt.Errorf("release deletion unsuccesful, %v", err)

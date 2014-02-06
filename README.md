@@ -91,10 +91,10 @@ $ github-release delete \
 
 GitHub Enterprise Support
 =========================
-You can point to a different GitHub API endpoint via the environment variable ```GITHUB_API_URL```:
+You can point to a different GitHub API endpoint via the environment variable ```GITHUB_API```:
 
 ```
-export GITHUB_API_URL=http://github.company.com/api/v3
+export GITHUB_API=http://github.company.com/api/v3
 ```
 
 Used libraries
