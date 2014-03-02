@@ -40,7 +40,7 @@ type Options struct {
 		Token string `goptions:"-s, --security-token, description='Github token (required if $GITHUB_TOKEN not set)'"`
 		User  string `goptions:"-u, --user, description='Github user (required if $GITHUB_USER not set)'"`
 		Repo  string `goptions:"-r, --repo, description='Github repo (required if $GITHUB_REPO not set)'"`
-		Tag   string `goptions:"-t, --tag, obligatory, description='Git tag to create a release from'"`
+		Tag   string `goptions:"-t, --tag, obligatory, description='Git tag of release to delete'"`
 	} `goptions:"delete"`
 	Info struct {
 		User string `goptions:"-u, --user, description='Github user (required if $GITHUB_USER not set)'"`
