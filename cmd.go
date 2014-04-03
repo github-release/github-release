@@ -131,14 +131,15 @@ func ValidateCredentials(user, repo, token, tag string) error {
 }
 
 func releasecmd(opt Options) error {
-	user := nvls(opt.Release.User, EnvUser)
-	repo := nvls(opt.Release.Repo, EnvRepo)
-	token := nvls(opt.Release.Token, EnvToken)
-	tag := opt.Release.Tag
-	name := nvls(opt.Release.Name, tag)
-	desc := nvls(opt.Release.Desc, tag)
-	draft := opt.Release.Draft
-	prerelease := opt.Release.Prerelease
+	cmdopt := opt.Release
+	user := nvls(cmdopt.User, EnvUser)
+	repo := nvls(cmdopt.Repo, EnvRepo)
+	token := nvls(cmdopt.Token, EnvToken)
+	tag := cmdopt.Tag
+	name := nvls(cmdopt.Name, tag)
+	desc := nvls(cmdopt.Desc, tag)
+	draft := cmdopt.Draft
+	prerelease := cmdopt.Prerelease
 
 	vprintln("releasing...")
 
@@ -154,38 +155,18 @@ func releasecmd(opt Options) error {
 		Prerelease: prerelease,
 	}
 
-	/* when verbosity is off, we don't need the body and we can create a
-	 * version with lower overhead (I actually notice this to be slower,
-	 * should benchmark...) */
-	var (
-		reader  io.Reader
-		rawjson string
-	)
-	if VERBOSITY == 0 {
-		var writer io.WriteCloser
-		reader, writer = io.Pipe()
-		enc := json.NewEncoder(writer)
-		go func() {
-			err := enc.Encode(params)
-			defer writer.Close()
-			if err != nil {
-				/* TODO: we can probably end cleaner here... */
-				panic(fmt.Errorf("can't encode release creation params, %v", err))
-			}
-		}()
-	} else {
-		jsonBytes, err := json.Marshal(params)
-		if err != nil {
-			return fmt.Errorf("can't encode release creation params, %v", err)
-		}
-		rawjson = string(jsonBytes)
-		reader = bytes.NewReader(jsonBytes)
+	/* encode params as json */
+	payload, err := json.Marshal(params)
+	if err != nil {
+		return fmt.Errorf("can't encode release creation params, %v", err)
 	}
+	reader := bytes.NewReader(payload)
 
 	uri := fmt.Sprintf("/repos/%s/%s/releases", user, repo)
-	resp, err := DoAuthRequest("POST", ApiURL()+uri, "application/json", token, reader)
+	resp, err := DoAuthRequest("POST", ApiURL()+uri, "application/json",
+		token, reader)
 	if err != nil {
-		return fmt.Errorf("while submitting %v, %v", rawjson, err)
+		return fmt.Errorf("while submitting %v, %v", string(payload), err)
 	}
 	defer resp.Body.Close()
 
