@@ -71,6 +71,16 @@ $ github-release release \
     --description "Not a movie, contrary to popular opinion. Still, my first release!" \
     --pre-release
 
+# you've made a mistake, but you can edit the release without
+# having to delete it first (this also means you can edit without having
+# to upload your files again)
+$ github-release edit \
+    --user aktau \
+    --repo gofinance \
+    --tag v0.1.0 \
+    --name "Highlander II: The Quickening" \
+    --description "This is the actual description!"
+
 # upload a file, for example the OSX/AMD64 binary of my gofinance app
 $ github-release upload \
     --user aktau \

@@ -36,6 +36,16 @@ type Options struct {
 		Draft      bool   `goptions:"--draft, description='The release is a draft'"`
 		Prerelease bool   `goptions:"-p, --pre-release, description='The release is a pre-release'"`
 	} `goptions:"release"`
+	Edit struct {
+		Token      string `goptions:"-s, --security-token, description='Github token (required if $GITHUB_TOKEN not set)'"`
+		User       string `goptions:"-u, --user, description='Github user (required if $GITHUB_USER not set)'"`
+		Repo       string `goptions:"-r, --repo, description='Github repo (required if $GITHUB_REPO not set)'"`
+		Tag        string `goptions:"-t, --tag, obligatory, description='Git tag to edit the release of'"`
+		Name       string `goptions:"-n, --name, description='New name of the release (defaults to tag)'"`
+		Desc       string `goptions:"-d, --description, description='New description of the release (defaults to tag)'"`
+		Draft      bool   `goptions:"--draft, description='The release is a draft'"`
+		Prerelease bool   `goptions:"-p, --pre-release, description='The release is a pre-release'"`
+	} `goptions:"edit"`
 	Delete struct {
 		Token string `goptions:"-s, --security-token, description='Github token (required if $GITHUB_TOKEN not set)'"`
 		User  string `goptions:"-u, --user, description='Github user (required if $GITHUB_USER not set)'"`
@@ -54,6 +64,7 @@ type Command func(Options) error
 var commands = map[goptions.Verbs]Command{
 	"upload":  uploadcmd,
 	"release": releasecmd,
+	"edit":    editcmd,
 	"delete":  deletecmd,
 	"info":    infocmd,
 }
@@ -63,9 +74,9 @@ var (
 )
 
 var (
-	EnvToken string
-	EnvUser  string
-	EnvRepo  string
+	EnvToken       string
+	EnvUser        string
+	EnvRepo        string
 	EnvApiEndpoint string
 )
 
@@ -285,6 +296,71 @@ func releasecmd(opt Options) error {
 				resp.Status)
 		}
 		return fmt.Errorf("github returned %v", resp.Status)
+	}
+
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return fmt.Errorf("error while reading response, %v", err)
+	}
+	vprintln("BODY:", string(body))
+
+	return nil
+}
+
+func editcmd(opt Options) error {
+	cmdopt := opt.Edit
+	user := nvls(cmdopt.User, EnvUser)
+	repo := nvls(cmdopt.Repo, EnvRepo)
+	token := nvls(cmdopt.Token, EnvToken)
+	tag := cmdopt.Tag
+	name := nvls(cmdopt.Name, tag)
+	desc := nvls(cmdopt.Desc, tag)
+	draft := cmdopt.Draft
+	prerelease := cmdopt.Prerelease
+
+	vprintln("editing...")
+
+	if err := ValidateCredentials(user, repo, token, tag); err != nil {
+		return err
+	}
+
+	id, err := IdOfTag(user, repo, tag)
+	if err != nil {
+		return err
+	}
+
+	vprintf("release %v has id %v\n", tag, id)
+
+	/* the release create struct works for editing releases as well */
+	params := ReleaseCreate{
+		TagName:    tag,
+		Name:       name,
+		Body:       desc,
+		Draft:      draft,
+		Prerelease: prerelease,
+	}
+
+	/* encode the parameters as JSON, as required by the github API */
+	payload, err := json.Marshal(params)
+	if err != nil {
+		return fmt.Errorf("can't encode release creation params, %v", err)
+	}
+
+	uri := fmt.Sprintf("/repos/%s/%s/releases/%d", user, repo, id)
+	resp, err := DoAuthRequest("PATCH", ApiURL()+uri, "application/json",
+		token, bytes.NewReader(payload))
+	if err != nil {
+		return fmt.Errorf("while submitting %v, %v", string(payload), err)
+	}
+	defer resp.Body.Close()
+
+	vprintln("RESPONSE:", resp)
+	if resp.StatusCode != http.StatusOK {
+		if resp.StatusCode == 422 {
+			return fmt.Errorf("github returned %v (this is probably because the release already exists)",
+				resp.Status)
+		}
+		return fmt.Errorf("github returned unexpected status code %v", resp.Status)
 	}
 
 	body, err := ioutil.ReadAll(resp.Body)
