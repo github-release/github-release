@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"io"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -179,11 +178,13 @@ func releasecmd(opt Options) error {
 		return fmt.Errorf("github returned %v", resp.Status)
 	}
 
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return fmt.Errorf("error while reading response, %v", err)
+	if VERBOSITY != 0 {
+		body, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			return fmt.Errorf("error while reading response, %v", err)
+		}
+		vprintln("BODY:", string(body))
 	}
-	vprintln("BODY:", string(body))
 
 	return nil
 }
@@ -244,11 +245,13 @@ func editcmd(opt Options) error {
 		return fmt.Errorf("github returned unexpected status code %v", resp.Status)
 	}
 
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return fmt.Errorf("error while reading response, %v", err)
+	if VERBOSITY != 0 {
+		body, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			return fmt.Errorf("error while reading response, %v", err)
+		}
+		vprintln("BODY:", string(body))
 	}
-	vprintln("BODY:", string(body))
 
 	return nil
 }
