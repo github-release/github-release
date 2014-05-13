@@ -11,10 +11,11 @@ import (
 
 const (
 	API_URL = "https://api.github.com"
+	GH_URL  = "https://github.com"
 )
 
 /* create a new request that sends the auth token */
-func NewAuthRequest(method, url, bodyType, token string, body io.Reader) (*http.Request, error) {
+func NewAuthRequest(method, url, bodyType, token string, headers map[string]string, body io.Reader) (*http.Request, error) {
 	vprintln("creating request:", method, url, bodyType, token)
 
 	req, err := http.NewRequest(method, url, body)
@@ -43,14 +44,20 @@ func NewAuthRequest(method, url, bodyType, token string, body io.Reader) (*http.
 		}
 	}
 
-	req.Header.Set("Content-Type", bodyType)
+	if bodyType != "" {
+		req.Header.Set("Content-Type", bodyType)
+	}
 	req.Header.Set("Authorization", fmt.Sprintf("token %s", token))
+
+	for k, v := range headers {
+		req.Header.Set(k, v)
+	}
 
 	return req, nil
 }
 
-func DoAuthRequest(method, url, bodyType, token string, body io.Reader) (*http.Response, error) {
-	req, err := NewAuthRequest(method, url, bodyType, token, body)
+func DoAuthRequest(method, url, bodyType, token string, headers map[string]string, body io.Reader) (*http.Response, error) {
+	req, err := NewAuthRequest(method, url, bodyType, token, headers, body)
 	if err != nil {
 		return nil, err
 	}

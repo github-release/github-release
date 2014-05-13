@@ -2,8 +2,9 @@ package main
 
 import (
 	"fmt"
-	"github.com/voxelbrain/goptions"
 	"os"
+
+	"github.com/voxelbrain/goptions"
 )
 
 type Options struct {
@@ -12,6 +13,13 @@ type Options struct {
 	Quiet     bool          `goptions:"-q, --quiet, description='Do not print anything, even errors (except if --verbose is specified)'"`
 
 	goptions.Verbs
+	Download struct {
+		Token string `goptions:"-s, --security-token, description='Github token ($GITHUB_TOKEN if set). required if repo is private.'"`
+		User  string `goptions:"-u, --user, description='Github user (required if $GITHUB_USER not set)'"`
+		Repo  string `goptions:"-r, --repo, description='Github repo (required if $GITHUB_REPO not set)'"`
+		Tag   string `goptions:"-t, --tag, description='Git tag to upload for', obligatory"`
+		Name  string `goptions:"-n, --name, description='Name of the file', obligatory"`
+	} `goptions:"download"`
 	Upload struct {
 		Token string   `goptions:"-s, --security-token, description='Github token (required if $GITHUB_TOKEN not set)'"`
 		User  string   `goptions:"-u, --user, description='Github user (required if $GITHUB_USER not set)'"`
@@ -47,20 +55,22 @@ type Options struct {
 		Tag   string `goptions:"-t, --tag, obligatory, description='Git tag of release to delete'"`
 	} `goptions:"delete"`
 	Info struct {
-		User string `goptions:"-u, --user, description='Github user (required if $GITHUB_USER not set)'"`
-		Repo string `goptions:"-r, --repo, description='Github repo (required if $GITHUB_REPO not set)'"`
-		Tag  string `goptions:"-t, --tag, description='Git tag to query (optional)'"`
+		Token string `goptions:"-s, --security-token, description='Github token ($GITHUB_TOKEN if set). required if repo is private.'"`
+		User  string `goptions:"-u, --user, description='Github user (required if $GITHUB_USER not set)'"`
+		Repo  string `goptions:"-r, --repo, description='Github repo (required if $GITHUB_REPO not set)'"`
+		Tag   string `goptions:"-t, --tag, description='Git tag to query (optional)'"`
 	} `goptions:"info"`
 }
 
 type Command func(Options) error
 
 var commands = map[goptions.Verbs]Command{
-	"upload":  uploadcmd,
-	"release": releasecmd,
-	"edit":    editcmd,
-	"delete":  deletecmd,
-	"info":    infocmd,
+	"download": downloadcmd,
+	"upload":   uploadcmd,
+	"release":  releasecmd,
+	"edit":     editcmd,
+	"delete":   deletecmd,
+	"info":     infocmd,
 }
 
 var (
