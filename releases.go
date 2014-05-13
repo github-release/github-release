@@ -2,13 +2,14 @@ package main
 
 import (
 	"fmt"
-	"github.com/dustin/go-humanize"
 	"strings"
 	"time"
+
+	"github.com/dustin/go-humanize"
 )
 
 const (
-	RELEASE_LIST_URI = "/repos/%s/%s/releases"
+	RELEASE_LIST_URI = "/repos/%s/%s/releases%s"
 )
 
 type Release struct {
@@ -65,9 +66,12 @@ type ReleaseCreate struct {
 	Prerelease      bool   `json:"prerelease"`
 }
 
-func Releases(user, repo string) ([]Release, error) {
+func Releases(user, repo, token string) ([]Release, error) {
+	if token != "" {
+		token = "?access_token=" + token
+	}
 	var releases []Release
-	err := GithubGet(fmt.Sprintf(RELEASE_LIST_URI, user, repo), &releases)
+	err := GithubGet(fmt.Sprintf(RELEASE_LIST_URI, user, repo, token), &releases)
 	if err != nil {
 		return nil, err
 	}
@@ -75,8 +79,8 @@ func Releases(user, repo string) ([]Release, error) {
 	return releases, nil
 }
 
-func ReleaseOfTag(user, repo, tag string) (*Release, error) {
-	releases, err := Releases(user, repo)
+func ReleaseOfTag(user, repo, tag, token string) (*Release, error) {
+	releases, err := Releases(user, repo, token)
 	if err != nil {
 		return nil, err
 	}
@@ -91,8 +95,8 @@ func ReleaseOfTag(user, repo, tag string) (*Release, error) {
 }
 
 /* find the release-id of the specified tag */
-func IdOfTag(user, repo, tag string) (int, error) {
-	release, err := ReleaseOfTag(user, repo, tag)
+func IdOfTag(user, repo, tag, token string) (int, error) {
+	release, err := ReleaseOfTag(user, repo, tag, token)
 	if err != nil {
 		return 0, err
 	}

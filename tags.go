@@ -5,7 +5,7 @@ import (
 )
 
 const (
-	TAGS_URI = "/repos/%s/%s/tags"
+	TAGS_URI = "/repos/%s/%s/tags%s"
 )
 
 type Tag struct {
@@ -20,9 +20,14 @@ func (t *Tag) String() string {
 }
 
 /* get the tags associated with a repo */
-func Tags(user, repo string) ([]Tag, error) {
+func Tags(user, repo, token string) ([]Tag, error) {
 	var tags []Tag
-	err := GithubGet(fmt.Sprintf(TAGS_URI, user, repo), &tags)
+
+	if token != "" {
+		token = "?access_token=" + token
+	}
+
+	err := GithubGet(fmt.Sprintf(TAGS_URI, user, repo, token), &tags)
 	if err != nil {
 		return nil, err
 	}

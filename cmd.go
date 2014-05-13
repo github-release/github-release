@@ -4,22 +4,26 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"os"
+	"strconv"
 )
 
 func infocmd(opt Options) error {
 	user := nvls(opt.Info.User, EnvUser)
 	repo := nvls(opt.Info.Repo, EnvRepo)
 	tag := opt.Upload.Tag
+	token := nvls(opt.Info.Token, EnvToken)
 
 	if user == "" || repo == "" {
 		return fmt.Errorf("user and repo need to be passed as arguments")
 	}
 
 	/* list all tags */
-	tags, err := Tags(user, repo)
+	tags, err := Tags(user, repo, token)
 	if err != nil {
 		return fmt.Errorf("could not fetch tags, %v", err)
 	}
@@ -35,14 +39,14 @@ func infocmd(opt Options) error {
 	if tag == "" {
 		/* get all releases */
 		vprintf("%v/%v: getting information for all releases\n", user, repo)
-		releases, err = Releases(user, repo)
+		releases, err = Releases(user, repo, token)
 		if err != nil {
 			return err
 		}
 	} else {
 		/* get only one release */
 		vprintf("%v/%v/%v: getting information for the release\n", user, repo, tag)
-		release, err := ReleaseOfTag(user, repo, tag)
+		release, err := ReleaseOfTag(user, repo, tag, token)
 		if err != nil {
 			return err
 		}
@@ -75,7 +79,7 @@ func uploadcmd(opt Options) error {
 	}
 
 	/* find the release corresponding to the entered tag, if any */
-	rel, err := ReleaseOfTag(user, repo, tag)
+	rel, err := ReleaseOfTag(user, repo, tag, token)
 	if err != nil {
 		return err
 	}
@@ -86,7 +90,7 @@ func uploadcmd(opt Options) error {
 	url := rel.CleanUploadUrl() + "?" + v.Encode()
 
 	resp, err := DoAuthRequest("POST", url, "application/octet-stream",
-		token, file)
+		token, nil, file)
 	if err != nil {
 		return fmt.Errorf("can't create upload request to %v, %v", url, err)
 	}
@@ -113,7 +117,81 @@ func uploadcmd(opt Options) error {
 	return nil
 }
 
-func ValidateCredentials(user, repo, token, tag string) error {
+func downloadcmd(opt Options) error {
+	user := nvls(opt.Download.User, EnvUser)
+	repo := nvls(opt.Download.Repo, EnvRepo)
+	token := nvls(opt.Download.Token, EnvToken)
+	tag := opt.Download.Tag
+	name := opt.Download.Name
+
+	vprintln("downloading...")
+
+	if err := ValidateTarget(user, repo, tag); err != nil {
+		return err
+	}
+
+	/* find the release corresponding to the entered tag, if any */
+	rel, err := ReleaseOfTag(user, repo, tag, token)
+	if err != nil {
+		return err
+	}
+
+	assetId := 0
+	for _, asset := range rel.Assets {
+		if asset.Name == name {
+			assetId = asset.Id
+		}
+	}
+
+	if assetId == 0 {
+		return fmt.Errorf("coud not find asset named %s", name)
+	}
+
+	var resp *http.Response
+	var url string
+	if token == "" {
+		url = GH_URL + fmt.Sprintf("/%s/%s/releases/download/%s/%s", user, repo, tag, name)
+		resp, err = http.Get(url)
+
+	} else {
+		url = ApiURL() + fmt.Sprintf(ASSET_DOWNLOAD_URI, user, repo, assetId)
+
+		resp, err = DoAuthRequest("GET", url, "", token, map[string]string{
+			"Accept": "application/octet-stream",
+		}, nil)
+	}
+
+	if err != nil {
+		return fmt.Errorf("could not fetch releases, %v", err)
+	}
+
+	defer resp.Body.Close()
+	vprintln("GET", url, "->", resp)
+
+	contentLength, err := strconv.ParseInt(resp.Header.Get("Content-Length"), 10, 64)
+	if err != nil {
+		return err
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("github did not respond with 200 OK but with %v", resp.Status)
+	}
+
+	out, err := os.Create(name)
+	defer out.Close()
+
+	n, err := io.Copy(out, resp.Body)
+	if err != nil {
+		return err
+	}
+	if n != contentLength {
+		return fmt.Errorf("downloaded data did not match content length %s != %s", contentLength, n)
+	}
+
+	return nil
+}
+
+func ValidateTarget(user, repo, tag string) error {
 	if user == "" {
 		return fmt.Errorf("empty user")
 	}
@@ -122,6 +200,14 @@ func ValidateCredentials(user, repo, token, tag string) error {
 	}
 	if tag == "" {
 		return fmt.Errorf("empty tag")
+	}
+	return nil
+}
+
+func ValidateCredentials(user, repo, token, tag string) error {
+	err := ValidateTarget(user, repo, tag)
+	if err != nil {
+		return err
 	}
 	if token == "" {
 		return fmt.Errorf("empty token")
@@ -163,7 +249,7 @@ func releasecmd(opt Options) error {
 
 	uri := fmt.Sprintf("/repos/%s/%s/releases", user, repo)
 	resp, err := DoAuthRequest("POST", ApiURL()+uri, "application/json",
-		token, reader)
+		token, nil, reader)
 	if err != nil {
 		return fmt.Errorf("while submitting %v, %v", string(payload), err)
 	}
@@ -206,7 +292,7 @@ func editcmd(opt Options) error {
 		return err
 	}
 
-	id, err := IdOfTag(user, repo, tag)
+	id, err := IdOfTag(user, repo, tag, token)
 	if err != nil {
 		return err
 	}
@@ -230,7 +316,7 @@ func editcmd(opt Options) error {
 
 	uri := fmt.Sprintf("/repos/%s/%s/releases/%d", user, repo, id)
 	resp, err := DoAuthRequest("PATCH", ApiURL()+uri, "application/json",
-		token, bytes.NewReader(payload))
+		token, nil, bytes.NewReader(payload))
 	if err != nil {
 		return fmt.Errorf("while submitting %v, %v", string(payload), err)
 	}
@@ -263,7 +349,7 @@ func deletecmd(opt Options) error {
 		opt.Delete.Tag
 	vprintln("deleting...")
 
-	id, err := IdOfTag(user, repo, tag)
+	id, err := IdOfTag(user, repo, tag, token)
 	if err != nil {
 		return err
 	}
@@ -286,7 +372,7 @@ func deletecmd(opt Options) error {
 }
 
 func httpDelete(url, token string) (*http.Response, error) {
-	resp, err := DoAuthRequest("DELETE", url, "application/json", token, nil)
+	resp, err := DoAuthRequest("DELETE", url, "application/json", token, nil, nil)
 	if err != nil {
 		return nil, err
 	}
