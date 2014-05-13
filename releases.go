@@ -42,7 +42,7 @@ func (r *Release) String() string {
 
 	str := make([]string, len(r.Assets)+1)
 	str[0] = fmt.Sprintf(
-		"%5s, name: '%s', description: '%s', id: %d, tagged: %s, published: %s, draft: %v, prerelease: %v",
+		"%s, name: '%s', description: '%s', id: %d, tagged: %s, published: %s, draft: %v, prerelease: %v",
 		r.TagName, r.Name, r.Description, r.Id,
 		r.Created.Format(format),
 		r.Published.Format(format),

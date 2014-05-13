@@ -15,26 +15,44 @@ import (
 func infocmd(opt Options) error {
 	user := nvls(opt.Info.User, EnvUser)
 	repo := nvls(opt.Info.Repo, EnvRepo)
-	tag := opt.Upload.Tag
 	token := nvls(opt.Info.Token, EnvToken)
+	tag := opt.Info.Tag
 
 	if user == "" || repo == "" {
 		return fmt.Errorf("user and repo need to be passed as arguments")
 	}
 
-	/* list all tags */
-	tags, err := Tags(user, repo, token)
+	/* find regular git tags */
+	allTags, err := Tags(user, repo, token)
 	if err != nil {
 		return fmt.Errorf("could not fetch tags, %v", err)
 	}
+	if len(allTags) == 0 {
+		return fmt.Errorf("no tags available for %v/%v", user, repo)
+	}
+
+	/* list all tags */
+	tags := make([]Tag, 0, len(allTags))
+	for _, t := range allTags {
+		/* if the user only requested see one tag, skip the ones that
+		 * don't match */
+		if tag != "" && t.Name != tag {
+			continue
+		}
+		tags = append(tags, t)
+	}
+
+	/* if no tags conformed to the users' request, exit */
+	if len(tags) == 0 {
+		return fmt.Errorf("no tag '%v' was found for %v/%v", tag, user, repo)
+	}
 
 	fmt.Println("git tags:")
-	for _, tag := range tags {
-		fmt.Println("-", tag.String())
+	for _, t := range tags {
+		fmt.Println("-", t.String())
 	}
 
 	/* list releases + assets */
-	fmt.Println("releases:")
 	var releases []Release
 	if tag == "" {
 		/* get all releases */
@@ -53,6 +71,12 @@ func infocmd(opt Options) error {
 		releases = []Release{*release}
 	}
 
+	/* if no tags conformed to the users' request, exit */
+	if len(releases) == 0 {
+		return fmt.Errorf("no release(s) were found for %v/%v (%v)", user, repo, tag)
+	}
+
+	fmt.Println("releases:")
 	for _, release := range releases {
 		fmt.Println("-", release.String())
 	}
