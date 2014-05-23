@@ -152,15 +152,12 @@ func downloadcmd(opt Options) error {
 	if token == "" {
 		url = GH_URL + fmt.Sprintf("/%s/%s/releases/download/%s/%s", user, repo, tag, name)
 		resp, err = http.Get(url)
-
 	} else {
 		url = ApiURL() + fmt.Sprintf(ASSET_DOWNLOAD_URI, user, repo, assetId)
-
 		resp, err = DoAuthRequest("GET", url, "", token, map[string]string{
 			"Accept": "application/octet-stream",
 		}, nil)
 	}
-
 	if err != nil {
 		return fmt.Errorf("could not fetch releases, %v", err)
 	}
@@ -178,6 +175,9 @@ func downloadcmd(opt Options) error {
 	}
 
 	out, err := os.Create(name)
+	if err != nil {
+		return fmt.Errorf("could not create file %s", name)
+	}
 	defer out.Close()
 
 	n, err := io.Copy(out, resp.Body)
@@ -205,8 +205,7 @@ func ValidateTarget(user, repo, tag string) error {
 }
 
 func ValidateCredentials(user, repo, token, tag string) error {
-	err := ValidateTarget(user, repo, tag)
-	if err != nil {
+	if err := ValidateTarget(user, repo, tag); err != nil {
 		return err
 	}
 	if token == "" {
