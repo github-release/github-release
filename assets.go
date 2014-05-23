@@ -4,6 +4,10 @@ import (
 	"time"
 )
 
+const (
+	ASSET_DOWNLOAD_URI = "/repos/%s/%s/releases/assets/%d"
+)
+
 type Asset struct {
 	Url         string    `json:"url"`
 	Id          int       `json:"id"`
