@@ -9,22 +9,23 @@ import (
 )
 
 const (
-	RELEASE_LIST_URI = "/repos/%s/%s/releases%s"
+	RELEASE_LIST_URI    = "/repos/%s/%s/releases%s"
+	RELEASE_DATE_FORMAT = "02/01/2006 at 15:04"
 )
 
 type Release struct {
-	Url         string    `json:"url"`
-	PageUrl     string    `json:"html_url"`
-	UploadUrl   string    `json:"upload_url"`
-	Id          int       `json:"id"`
-	Name        string    `json:"name"`
-	Description string    `json:"body"`
-	TagName     string    `json:"tag_name"`
-	Draft       bool      `json:"draft"`
-	Prerelease  bool      `json:"prerelease"`
-	Created     time.Time `json:"created_at"`
-	Published   time.Time `json:"published_at"`
-	Assets      []Asset   `json:"assets"`
+	Url         string     `json:"url"`
+	PageUrl     string     `json:"html_url"`
+	UploadUrl   string     `json:"upload_url"`
+	Id          int        `json:"id"`
+	Name        string     `json:"name"`
+	Description string     `json:"body"`
+	TagName     string     `json:"tag_name"`
+	Draft       bool       `json:"draft"`
+	Prerelease  bool       `json:"prerelease"`
+	Created     *time.Time `json:"created_at"`
+	Published   *time.Time `json:"published_at"`
+	Assets      []Asset    `json:"assets"`
 }
 
 func (r *Release) CleanUploadUrl() string {
@@ -38,14 +39,12 @@ func (r *Release) CleanUploadUrl() string {
 }
 
 func (r *Release) String() string {
-	const format = "02/01/2006 at 15:04"
-
 	str := make([]string, len(r.Assets)+1)
 	str[0] = fmt.Sprintf(
 		"%s, name: '%s', description: '%s', id: %d, tagged: %s, published: %s, draft: %v, prerelease: %v",
 		r.TagName, r.Name, r.Description, r.Id,
-		r.Created.Format(format),
-		r.Published.Format(format),
+		timeFmtOr(r.Created, RELEASE_DATE_FORMAT, ""),
+		timeFmtOr(r.Published, RELEASE_DATE_FORMAT, ""),
 		Mark(r.Draft), Mark(r.Prerelease))
 
 	for idx, asset := range r.Assets {
