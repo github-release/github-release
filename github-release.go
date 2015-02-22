@@ -17,14 +17,14 @@ type Options struct {
 		Token string `goptions:"-s, --security-token, description='Github token ($GITHUB_TOKEN if set). required if repo is private.'"`
 		User  string `goptions:"-u, --user, description='Github user (required if $GITHUB_USER not set)'"`
 		Repo  string `goptions:"-r, --repo, description='Github repo (required if $GITHUB_REPO not set)'"`
-		Tag   string `goptions:"-t, --tag, description='Git tag to upload for', obligatory"`
+		Tag   string `goptions:"-t, --tag, description='Git tag to download from', obligatory"`
 		Name  string `goptions:"-n, --name, description='Name of the file', obligatory"`
 	} `goptions:"download"`
 	Upload struct {
 		Token string   `goptions:"-s, --security-token, description='Github token (required if $GITHUB_TOKEN not set)'"`
 		User  string   `goptions:"-u, --user, description='Github user (required if $GITHUB_USER not set)'"`
 		Repo  string   `goptions:"-r, --repo, description='Github repo (required if $GITHUB_REPO not set)'"`
-		Tag   string   `goptions:"-t, --tag, description='Git tag to upload for', obligatory"`
+		Tag   string   `goptions:"-t, --tag, description='Git tag to upload to', obligatory"`
 		Name  string   `goptions:"-n, --name, description='Name of the file', obligatory"`
 		File  *os.File `goptions:"-f, --file, description='File to upload (use - for stdin)', rdonly, obligatory"`
 	} `goptions:"upload"`
