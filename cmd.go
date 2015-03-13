@@ -249,6 +249,10 @@ func releasecmd(opt Options) error {
 	draft := cmdopt.Draft
 	prerelease := cmdopt.Prerelease
 
+	if err := maybeReadFromFile(&desc); err != nil {
+		return err
+	}
+
 	vprintln("releasing...")
 
 	if err := ValidateCredentials(user, repo, token, tag); err != nil {
@@ -308,6 +312,10 @@ func editcmd(opt Options) error {
 	desc := nvls(cmdopt.Desc, tag)
 	draft := cmdopt.Draft
 	prerelease := cmdopt.Prerelease
+
+	if err := maybeReadFromFile(&desc); err != nil {
+		return err
+	}
 
 	vprintln("editing...")
 
@@ -401,4 +409,17 @@ func httpDelete(url, token string) (*http.Response, error) {
 	}
 
 	return resp, nil
+}
+
+func maybeReadFromFile(s *string) error {
+	if fi, err := os.Stat(*s); err == nil && fi.Mode().IsRegular() {
+		data, err := ioutil.ReadFile(*s);
+		if err != nil {
+			return err
+		}
+
+		*s = string(data)
+	}
+
+	return nil
 }

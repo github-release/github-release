@@ -63,6 +63,7 @@ releases:
   - artifact: github.go, downloads: 0, state: uploaded, type: application/octet-stream, size: 1.9KB, id: 68616
 
 # create a formal release
+# if description is a file, its contents will be used.
 $ github-release release \
     --user aktau \
     --repo gofinance \
@@ -74,6 +75,7 @@ $ github-release release \
 # you've made a mistake, but you can edit the release without
 # having to delete it first (this also means you can edit without having
 # to upload your files again)
+# like "release", if description is a file, its contents will be used.
 $ github-release edit \
     --user aktau \
     --repo gofinance \
