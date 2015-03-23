@@ -10,6 +10,7 @@ import (
 
 const (
 	RELEASE_LIST_URI    = "/repos/%s/%s/releases%s"
+	RELEASE_LATEST_URI    = "/repos/%s/%s/releases/latest%s"
 	RELEASE_DATE_FORMAT = "02/01/2006 at 15:04"
 )
 
@@ -76,6 +77,16 @@ func Releases(user, repo, token string) ([]Release, error) {
 	}
 
 	return releases, nil
+}
+
+func LatestRelease(user, repo, token string) (*Release, error) {
+	var release Release
+	err := GithubGet(fmt.Sprintf(RELEASE_LATEST_URI, user, repo, token), &release)
+
+	if err != nil {
+		return nil, err
+	}
+	return &release, nil
 }
 
 func ReleaseOfTag(user, repo, tag, token string) (*Release, error) {
