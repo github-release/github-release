@@ -152,15 +152,22 @@ func downloadcmd(opt Options) error {
 	token := nvls(opt.Download.Token, EnvToken)
 	tag := opt.Download.Tag
 	name := opt.Download.Name
+	latest := opt.Download.Latest
 
 	vprintln("downloading...")
 
-	if err := ValidateTarget(user, repo, tag); err != nil {
+	if err := ValidateTarget(user, repo, tag, latest); err != nil {
 		return err
 	}
 
-	/* find the release corresponding to the entered tag, if any */
-	rel, err := ReleaseOfTag(user, repo, tag, token)
+	// Find the release corresponding to the entered tag, if any.
+	var rel *Release
+	var err error
+	if latest {
+		rel, err = LatestRelease(user, repo, token)
+	} else {
+		rel, err = ReleaseOfTag(user, repo, tag, token)
+	}
 	if err != nil {
 		return err
 	}
@@ -220,21 +227,21 @@ func downloadcmd(opt Options) error {
 	return nil
 }
 
-func ValidateTarget(user, repo, tag string) error {
+func ValidateTarget(user, repo, tag string, latest bool) error {
 	if user == "" {
 		return fmt.Errorf("empty user")
 	}
 	if repo == "" {
 		return fmt.Errorf("empty repo")
 	}
-	if tag == "" {
+	if tag == "" && !latest {
 		return fmt.Errorf("empty tag")
 	}
 	return nil
 }
 
 func ValidateCredentials(user, repo, token, tag string) error {
-	if err := ValidateTarget(user, repo, tag); err != nil {
+	if err := ValidateTarget(user, repo, tag, false); err != nil {
 		return err
 	}
 	if token == "" {
