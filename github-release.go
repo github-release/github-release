@@ -38,6 +38,7 @@ type Options struct {
 		Tag        string `goptions:"-t, --tag, obligatory, description='Git tag to create a release from'"`
 		Name       string `goptions:"-n, --name, description='Name of the release (defaults to tag)'"`
 		Desc       string `goptions:"-d, --description, description='Description of the release (defaults to tag)'"`
+		Target     string `goptions:"-c, --target, description='Commit SHA or branch to create release of (defaults to the repository default branch)'"`
 		Draft      bool   `goptions:"--draft, description='The release is a draft'"`
 		Prerelease bool   `goptions:"-p, --pre-release, description='The release is a pre-release'"`
 	} `goptions:"release"`
