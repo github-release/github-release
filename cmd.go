@@ -155,17 +155,17 @@ func downloadcmd(opt Options) error {
 		return err
 	}
 
-	var rel Release
+	var rel *Release
 	var err error
-
 
 	if latest == false	{		/* find the release corresponding to the entered tag, if any */
 		rel, err = ReleaseOfTag(user, repo, tag, token)
-		if err != nil {
-			return err
-		}
 	} else {
 		rel, err = LatestRelease(user, repo, token)
+	}
+
+	if err != nil {
+		return err
 	}
 
 

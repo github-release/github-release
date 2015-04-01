@@ -79,14 +79,45 @@ func Releases(user, repo, token string) ([]Release, error) {
 	return releases, nil
 }
 
-func LatestRelease(user, repo, token string) (*Release, error) {
+func LatestReleaseApi(user, repo, token string) (*Release, error) {
+	if token != "" {
+		token = "?access_token=" + token
+	}
 	var release Release
 	err := GithubGet(fmt.Sprintf(RELEASE_LATEST_URI, user, repo, token), &release)
-
 	if err != nil {
 		return nil, err
 	}
 	return &release, nil
+}
+
+func LatestRelease(user, repo, token string) (*Release, error) {
+	var latestRelease *Release
+	latestRelease, err := LatestReleaseApi(user, repo, token)
+
+	// enterprise api doesnt support the latest release endpoint
+	// get all releases and see published date to get the latest
+
+	if err != nil {
+		releases, err := Releases(user, repo, token)
+		if err != nil {
+			return nil, err
+		}
+		var latestRelIndex = -1
+		var maxDate time.Time = time.Time{}
+		for i, release := range releases {
+			var relDate = *(release.Published)
+			if relDate.After(maxDate) {
+				maxDate = relDate
+				latestRelIndex = i
+			}
+		}
+		if(latestRelIndex!=-1) {
+			latestRelease = &releases[latestRelIndex]
+		}
+	}
+	vprintln("latest release is ->",latestRelease)
+	return latestRelease, nil
 }
 
 func ReleaseOfTag(user, repo, tag, token string) (*Release, error) {
