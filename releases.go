@@ -92,12 +92,10 @@ func LatestReleaseApi(user, repo, token string) (*Release, error) {
 }
 
 func LatestRelease(user, repo, token string) (*Release, error) {
-	var latestRelease *Release
 	latestRelease, err := LatestReleaseApi(user, repo, token)
 
 	// enterprise api doesnt support the latest release endpoint
 	// get all releases and see published date to get the latest
-
 	if err != nil {
 		releases, err := Releases(user, repo, token)
 		if err != nil {
@@ -113,10 +111,12 @@ func LatestRelease(user, repo, token string) (*Release, error) {
 			}
 		}
 		if(latestRelIndex!=-1) {
-			latestRelease = &releases[latestRelIndex]
+			vprintln("latest release is ->",&releases[latestRelIndex])
+			return &releases[latestRelIndex],nil
 		}
+		return nil, fmt.Errorf("could not find the latest release")
+
 	}
-	vprintln("latest release is ->",latestRelease)
 	return latestRelease, nil
 }
 
