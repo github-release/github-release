@@ -74,6 +74,12 @@ type Options struct {
 		Tag      string `goptions:"-t, --tag, description='Git tag to query (optional)'"`
 		JSON     bool   `goptions:"-j, --json, description='Emit info as JSON instead of text'"`
 	} `goptions:"info"`
+	Publish struct {
+		Token string `goptions:"-s, --security-token, description='Github token ($GITHUB_TOKEN if set). required if repo is private.'"`
+		User  string `goptions:"-u, --user, description='Github user (required if $GITHUB_USER not set)'"`
+		Repo  string `goptions:"-r, --repo, description='Github repo (required if $GITHUB_REPO not set)'"`
+		Tag   string `goptions:"-t, --tag, description='Git tag to query (optional)'"`
+	} `goptions:"publish"`
 }
 
 type Command func(Options) error
@@ -85,6 +91,7 @@ var commands = map[goptions.Verbs]Command{
 	"edit":     editcmd,
 	"delete":   deletecmd,
 	"info":     infocmd,
+	"publish":  publishcmd,
 }
 
 var (

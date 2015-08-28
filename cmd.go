@@ -487,3 +487,69 @@ func deletecmd(opt Options) error {
 
 	return nil
 }
+
+func publishcmd(opt Options) error {
+	cmdopt := opt.Publish
+	user := nvls(cmdopt.User, EnvUser)
+	authUser := nvls(opt.Info.AuthUser, EnvAuthUser)
+	repo := nvls(cmdopt.Repo, EnvRepo)
+	token := nvls(cmdopt.Token, EnvToken)
+	tag := cmdopt.Tag
+
+	vprintln("publishing...")
+
+	if err := ValidateCredentials(user, repo, token, tag); err != nil {
+		return err
+	}
+
+	/* look up the release */
+	vprintf("%v/%v/%v: getting information for the release\n", user, repo, tag)
+	release, err := ReleaseOfTag(user, repo, tag, authUser, token)
+	if err != nil {
+		return err
+	}
+
+	vprintf("release %v has id %v\n", tag, release.Id)
+
+	/* the release create struct works for editing releases as well */
+	params := ReleaseCreate{
+		TagName:    release.TagName,
+		Name:       release.Name,
+		Body:       release.Description,
+		Draft:      false,
+		Prerelease: release.Prerelease,
+	}
+
+	/* encode the parameters as JSON, as required by the github API */
+	payload, err := json.Marshal(params)
+	if err != nil {
+		return fmt.Errorf("can't encode release edit params, %v", err)
+	}
+
+	uri := nvls(EnvApiEndpoint, github.DefaultBaseURL) + fmt.Sprintf("/repos/%s/%s/releases/%d", user, repo, release.Id)
+	resp, err := github.DoAuthRequest("PATCH", uri, "application/json",
+		token, nil, bytes.NewReader(payload))
+	if err != nil {
+		return fmt.Errorf("while submitting %v, %v", string(payload), err)
+	}
+	defer resp.Body.Close()
+
+	vprintln("RESPONSE:", resp)
+	if resp.StatusCode != http.StatusOK {
+		if resp.StatusCode == 422 {
+			return fmt.Errorf("github returned %v (this is probably because the release already exists)",
+				resp.Status)
+		}
+		return fmt.Errorf("github returned unexpected status code %v", resp.Status)
+	}
+
+	if VERBOSITY != 0 {
+		body, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			return fmt.Errorf("error while reading response, %v", err)
+		}
+		vprintln("BODY:", string(body))
+	}
+
+	return nil
+}
