@@ -1,4 +1,3 @@
-VERSION := 0.5.3
 LAST_TAG := $(shell git describe --abbrev=0 --tags)
 
 USER := aktau

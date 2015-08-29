@@ -11,6 +11,7 @@ type Options struct {
 	Help      goptions.Help `goptions:"-h, --help, description='Show this help'"`
 	Verbosity []bool        `goptions:"-v, --verbose, description='Be verbose'"`
 	Quiet     bool          `goptions:"-q, --quiet, description='Do not print anything, even errors (except if --verbose is specified)'"`
+	Version   bool          `goptions:"--version, description='Print version'"`
 
 	goptions.Verbs
 	Download struct {
@@ -96,6 +97,11 @@ func main() {
 	options := Options{}
 
 	goptions.ParseAndFail(&options)
+
+	if options.Version {
+		fmt.Printf("github-release v%s\n", VERSION)
+		return
+	}
 
 	if len(options.Verbs) == 0 {
 		goptions.PrintHelp()
