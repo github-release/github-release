@@ -15,11 +15,12 @@ type Options struct {
 
 	goptions.Verbs
 	Download struct {
-		Token string `goptions:"-s, --security-token, description='Github token ($GITHUB_TOKEN if set). required if repo is private.'"`
-		User  string `goptions:"-u, --user, description='Github user (required if $GITHUB_USER not set)'"`
-		Repo  string `goptions:"-r, --repo, description='Github repo (required if $GITHUB_REPO not set)'"`
-		Tag   string `goptions:"-t, --tag, description='Git tag to download from', obligatory"`
-		Name  string `goptions:"-n, --name, description='Name of the file', obligatory"`
+		Token 	string `goptions:"-s, --security-token, description='Github token ($GITHUB_TOKEN if set). required if repo is private.'"`
+		User  	string `goptions:"-u, --user, description='Github user (required if $GITHUB_USER not set)'"`
+		Repo  	string `goptions:"-r, --repo, description='Github repo (required if $GITHUB_REPO not set)'"`
+		Latest  bool `goptions:"-l, --latest, description='Download latest release (required if tag is not specified)',mutexgroup='input'"`
+		Tag   	string `goptions:"-t, --tag, description='Git tag to download from (required if latest is not specified)', mutexgroup='input',obligatory"`
+		Name  	string `goptions:"-n, --name, description='Name of the file', obligatory"`
 	} `goptions:"download"`
 	Upload struct {
 		Token string   `goptions:"-s, --security-token, description='Github token (required if $GITHUB_TOKEN not set)'"`
