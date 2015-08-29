@@ -107,7 +107,7 @@ func main() {
 		err := cmd(options)
 		if err != nil {
 			if !options.Quiet {
-				fmt.Println("error:", err)
+				fmt.Fprintln(os.Stderr, "error:", err)
 			}
 			os.Exit(1)
 		}
