@@ -209,7 +209,7 @@ func downloadcmd(opt Options) error {
 		return err
 	}
 	if n != contentLength {
-		return fmt.Errorf("downloaded data did not match content length %s != %s", contentLength, n)
+		return fmt.Errorf("downloaded data did not match content length %d != %d", contentLength, n)
 	}
 
 	return nil
