@@ -26,6 +26,7 @@ type Options struct {
 		Repo  string   `goptions:"-r, --repo, description='Github repo (required if $GITHUB_REPO not set)'"`
 		Tag   string   `goptions:"-t, --tag, description='Git tag to upload to', obligatory"`
 		Name  string   `goptions:"-n, --name, description='Name of the file', obligatory"`
+		Label string   `goptions:"-l, --label, description='Label (description) of the file'"`
 		File  *os.File `goptions:"-f, --file, description='File to upload (use - for stdin)', rdonly, obligatory"`
 	} `goptions:"upload"`
 	Release struct {

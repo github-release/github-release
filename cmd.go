@@ -90,6 +90,7 @@ func uploadcmd(opt Options) error {
 	token := nvls(opt.Upload.Token, EnvToken)
 	tag := opt.Upload.Tag
 	name := opt.Upload.Name
+	label := opt.Upload.Label
 	file := opt.Upload.File
 
 	vprintln("uploading...")
@@ -111,6 +112,9 @@ func uploadcmd(opt Options) error {
 
 	v := url.Values{}
 	v.Set("name", name)
+	if label != "" {
+		v.Set("label", label)
+	}
 
 	url := rel.CleanUploadUrl() + "?" + v.Encode()
 
