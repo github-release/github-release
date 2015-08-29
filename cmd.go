@@ -97,6 +97,7 @@ func uploadcmd(opt Options) error {
 	if file == nil {
 		return fmt.Errorf("provided file was not valid")
 	}
+	defer file.Close()
 
 	if err := ValidateCredentials(user, repo, token, tag); err != nil {
 		return err
