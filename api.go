@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"os"
 )
@@ -114,17 +113,14 @@ func GithubGet(uri string, v interface{}) error {
 		return fmt.Errorf("github did not response with 200 OK but with %v", resp.Status)
 	}
 
-	if VERBOSITY == 0 {
-		if err = json.NewDecoder(resp.Body).Decode(v); err != nil {
-			return fmt.Errorf("could not unmarshall JSON into Release struct, %v", err)
-		}
-	} else {
-		body, err := ioutil.ReadAll(resp.Body)
-		vprintln("BODY", string(body))
+	var r io.Reader = resp.Body
+	if VERBOSITY > 0 {
+		vprintln("BODY:")
+		r = io.TeeReader(resp.Body, os.Stdout)
+	}
 
-		if err = json.Unmarshal(body, v); err != nil {
-			return fmt.Errorf("could not unmarshall JSON into Release struct, %v", err)
-		}
+	if err = json.NewDecoder(r).Decode(v); err != nil {
+		return fmt.Errorf("could not unmarshall JSON into Release struct, %v", err)
 	}
 
 	return nil
