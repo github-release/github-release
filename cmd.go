@@ -217,14 +217,10 @@ func downloadcmd(opt Options) error {
 	defer out.Close()
 
 	n, err := io.Copy(out, resp.Body)
-	if err != nil {
-		return err
-	}
 	if n != contentLength {
 		return fmt.Errorf("downloaded data did not match content length %d != %d", contentLength, n)
 	}
-
-	return nil
+	return err
 }
 
 func ValidateTarget(user, repo, tag string, latest bool) error {
