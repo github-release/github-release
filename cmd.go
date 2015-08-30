@@ -258,6 +258,7 @@ func releasecmd(opt Options) error {
 	tag := cmdopt.Tag
 	name := nvls(cmdopt.Name, tag)
 	desc := nvls(cmdopt.Desc, tag)
+	target := nvls(cmdopt.Target)
 	draft := cmdopt.Draft
 	prerelease := cmdopt.Prerelease
 
@@ -268,11 +269,12 @@ func releasecmd(opt Options) error {
 	}
 
 	params := ReleaseCreate{
-		TagName:    tag,
-		Name:       name,
-		Body:       desc,
-		Draft:      draft,
-		Prerelease: prerelease,
+		TagName:         tag,
+		TargetCommitish: target,
+		Name:            name,
+		Body:            desc,
+		Draft:           draft,
+		Prerelease:      prerelease,
 	}
 
 	/* encode params as json */
