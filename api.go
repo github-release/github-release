@@ -101,10 +101,12 @@ func DoAuthRequest(method, url, bodyType, token string, headers map[string]strin
 
 func GithubGet(uri string, v interface{}) error {
 	resp, err := http.Get(ApiURL() + uri)
+	if resp != nil {
+		defer resp.Body.Close()
+	}
 	if err != nil {
 		return fmt.Errorf("could not fetch releases, %v", err)
 	}
-	defer resp.Body.Close()
 
 	vprintln("GET", ApiURL()+uri, "->", resp)
 
