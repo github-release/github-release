@@ -79,45 +79,41 @@ func Releases(user, repo, token string) ([]Release, error) {
 	return releases, nil
 }
 
-func LatestReleaseApi(user, repo, token string) (*Release, error) {
+func latestReleaseApi(user, repo, token string) (*Release, error) {
 	if token != "" {
 		token = "?access_token=" + token
 	}
 	var release Release
-	err := GithubGet(fmt.Sprintf(RELEASE_LATEST_URI, user, repo, token), &release)
-	if err != nil {
-		return nil, err
-	}
-	return &release, nil
+	return &release, GithubGet(fmt.Sprintf(RELEASE_LATEST_URI, user, repo, token), &release)
 }
 
 func LatestRelease(user, repo, token string) (*Release, error) {
-	latestRelease, err := LatestReleaseApi(user, repo, token)
-
-	// enterprise api doesnt support the latest release endpoint
-	// get all releases and see published date to get the latest
-	if err != nil {
-		releases, err := Releases(user, repo, token)
-		if err != nil {
-			return nil, err
-		}
-		var latestRelIndex = -1
-		var maxDate time.Time = time.Time{}
-		for i, release := range releases {
-			var relDate = *(release.Published)
-			if relDate.After(maxDate) {
-				maxDate = relDate
-				latestRelIndex = i
-			}
-		}
-		if latestRelIndex != -1 {
-			vprintln("latest release is ->", &releases[latestRelIndex])
-			return &releases[latestRelIndex], nil
-		}
-		return nil, fmt.Errorf("could not find the latest release")
-
+	// If latestReleaseApi DOESN'T give an error, return the release.
+	if latestRelease, err := latestReleaseApi(user, repo, token); err == nil {
+		return latestRelease, nil
 	}
-	return latestRelease, nil
+
+	// The enterprise api doesnt support the latest release endpoint. Get
+	// all releases and compare the published date to get the latest.
+	releases, err := Releases(user, repo, token)
+	if err != nil {
+		return nil, err
+	}
+
+	var latestRelIndex = -1
+	maxDate := time.Time{}
+	for i, release := range releases {
+		if relDate := *release.Published; relDate.After(maxDate) {
+			maxDate = relDate
+			latestRelIndex = i
+		}
+	}
+	if latestRelIndex == -1 {
+		return nil, fmt.Errorf("could not find the latest release")
+	}
+
+	vprintln("Scanning ", len(releases), "releases, latest release is", releases[latestRelIndex])
+	return &releases[latestRelIndex], nil
 }
 
 func ReleaseOfTag(user, repo, tag, token string) (*Release, error) {
