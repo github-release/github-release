@@ -103,6 +103,9 @@ func LatestRelease(user, repo, token string) (*Release, error) {
 	var latestRelIndex = -1
 	maxDate := time.Time{}
 	for i, release := range releases {
+		if release.Published == nil {
+			continue
+		}
 		if relDate := *release.Published; relDate.After(maxDate) {
 			maxDate = relDate
 			latestRelIndex = i
