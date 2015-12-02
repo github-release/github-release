@@ -1,4 +1,4 @@
-package main
+package lib
 
 func Mark(ok bool) string {
 	if ok {

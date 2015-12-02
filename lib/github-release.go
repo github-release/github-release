@@ -1,4 +1,4 @@
-package main
+package lib
 
 import (
 	"fmt"
@@ -95,7 +95,7 @@ func init() {
 	EnvApiEndpoint = os.Getenv("GITHUB_API")
 }
 
-func main() {
+func Run() {
 	options := Options{}
 
 	goptions.ParseAndFail(&options)
