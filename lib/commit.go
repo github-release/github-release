@@ -1,4 +1,4 @@
-package main
+package lib
 
 type Commit struct {
 	Sha string `json:"sha"`

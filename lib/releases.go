@@ -1,4 +1,4 @@
-package main
+package lib
 
 import (
 	"fmt"
@@ -128,7 +128,7 @@ func ReleaseOfTag(user, repo, tag, token string) (*Release, error) {
 		}
 	}
 
-	return nil, fmt.Errorf("could not find the release corresponding to tag %s", tag)
+	return nil, &NotFound{Name: "release", Key: "tag", Value: tag}
 }
 
 /* find the release-id of the specified tag */
