@@ -23,13 +23,14 @@ type Options struct {
 		Name   string `goptions:"-n, --name, description='Name of the file', obligatory"`
 	} `goptions:"download"`
 	Upload struct {
-		Token string   `goptions:"-s, --security-token, description='Github token (required if $GITHUB_TOKEN not set)'"`
-		User  string   `goptions:"-u, --user, description='Github user (required if $GITHUB_USER not set)'"`
-		Repo  string   `goptions:"-r, --repo, description='Github repo (required if $GITHUB_REPO not set)'"`
-		Tag   string   `goptions:"-t, --tag, description='Git tag to upload to', obligatory"`
-		Name  string   `goptions:"-n, --name, description='Name of the file', obligatory"`
-		Label string   `goptions:"-l, --label, description='Label (description) of the file'"`
-		File  *os.File `goptions:"-f, --file, description='File to upload (use - for stdin)', rdonly, obligatory"`
+		Token   string   `goptions:"-s, --security-token, description='Github token (required if $GITHUB_TOKEN not set)'"`
+		User    string   `goptions:"-u, --user, description='Github user (required if $GITHUB_USER not set)'"`
+		Repo    string   `goptions:"-r, --repo, description='Github repo (required if $GITHUB_REPO not set)'"`
+		Tag     string   `goptions:"-t, --tag, description='Git tag to upload to', obligatory"`
+		Name    string   `goptions:"-n, --name, description='Name of the file', obligatory"`
+		Label   string   `goptions:"-l, --label, description='Label (description) of the file'"`
+		File    *os.File `goptions:"-f, --file, description='File to upload (use - for stdin)', rdonly, obligatory"`
+		Replace bool     `goptions:"-R, --replace, description='Replace upload with same name if already exists'"`
 	} `goptions:"upload"`
 	Release struct {
 		Token      string `goptions:"-s, --security-token, description='Github token (required if $GITHUB_TOKEN not set)'"`
