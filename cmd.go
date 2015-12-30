@@ -177,16 +177,19 @@ func downloadcmd(opt Options) error {
 	}
 
 	assetId := 0
+	var rx *regexp.Regexp
+	var theName string
 
 	if regexed {
-		var rx = regexp.MustCompile(name)
+
+		rx = regexp.MustCompile(name)
 	}
 
 	for _, asset := range rel.Assets {
 		if regexed {
-			var theName = rx.FindString(asset.Name)
+			theName = rx.FindString(asset.Name)
 		} else {
-			var theName = name
+			theName = name
 		}
 		if asset.Name == theName {
 			assetId = asset.Id
