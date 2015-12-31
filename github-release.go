@@ -60,10 +60,11 @@ type Options struct {
 		Tag   string `goptions:"-t, --tag, obligatory, description='Git tag of release to delete'"`
 	} `goptions:"delete"`
 	Info struct {
-		Token string `goptions:"-s, --security-token, description='Github token ($GITHUB_TOKEN if set). required if repo is private.'"`
-		User  string `goptions:"-u, --user, description='Github user (required if $GITHUB_USER not set)'"`
-		Repo  string `goptions:"-r, --repo, description='Github repo (required if $GITHUB_REPO not set)'"`
-		Tag   string `goptions:"-t, --tag, description='Git tag to query (optional)'"`
+		Token  string `goptions:"-s, --security-token, description='Github token ($GITHUB_TOKEN if set). required if repo is private.'"`
+		User   string `goptions:"-u, --user, description='Github user (required if $GITHUB_USER not set)'"`
+		Repo   string `goptions:"-r, --repo, description='Github repo (required if $GITHUB_REPO not set)'"`
+		Tag    string `goptions:"-t, --tag, description='Git tag to query (optional)', mutexgroup='input',obligatory"`
+		Latest bool   `goptions:"-l, --latest, description='Info on the latest release (required if tag is not specified)',mutexgroup='input'"`
 	} `goptions:"info"`
 }
 
