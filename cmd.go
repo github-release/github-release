@@ -19,12 +19,13 @@ func infocmd(opt Options) error {
 	token := nvls(opt.Info.Token, EnvToken)
 	tag := opt.Info.Tag
 	latest := opt.Info.Latest
+	latestTag := opt.Info.LatestTag
 
 	if user == "" || repo == "" {
 		return fmt.Errorf("user and repo need to be passed as arguments")
 	}
 
-	if latest {
+	if latest || latestTag {
 		var rel *Release
 		var err error
 		rel, err = LatestRelease(user, repo, token)
@@ -32,6 +33,10 @@ func infocmd(opt Options) error {
 			return err
 		}
 		tag = rel.TagName
+		if latestTag {
+			fmt.Println(tag)
+			return nil
+		}
 	}
 
 	/* find regular git tags */
