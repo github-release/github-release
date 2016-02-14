@@ -110,7 +110,7 @@ func GithubGet(uri string, v interface{}) error {
 	vprintln("GET", ApiURL()+uri, "->", resp)
 
 	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("github did not response with 200 OK but with %v", resp.Status)
+		return fmt.Errorf("github did not respond with 200 OK but with %v", resp.Status)
 	}
 
 	var r io.Reader = resp.Body
