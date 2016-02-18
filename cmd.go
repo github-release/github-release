@@ -209,6 +209,7 @@ func downloadcmd(opt Options) error {
 		}
 		if asset.Name == theName {
 			assetId = asset.Id
+			break
 		}
 	}
 
