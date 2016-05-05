@@ -65,10 +65,10 @@ release: bin/tmp/$(EXECUTABLE) $(COMPRESSED_EXECUTABLE_TARGETS)
 # go get -u ./...
 # go test -i ./
 dep:
-	go list -f '{{join .Deps "\n"}}' | xargs go list -f '{{if not .Standard}}{{.ImportPath}}{{end}}' | xargs go get -u
+	go list -f '{{join .Deps "\n"}}' | xargs go list -e -f '{{if not .Standard}}{{.ImportPath}}{{end}}' | xargs go get -u
 
 $(EXECUTABLE): dep
-	go build
+	go build -o "$@"
 
 install:
 	go install
