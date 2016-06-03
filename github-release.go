@@ -89,9 +89,11 @@ var (
 )
 
 func init() {
+	user, repo := gitUserAndRepo()
+
 	EnvToken = os.Getenv("GITHUB_TOKEN")
-	EnvUser = os.Getenv("GITHUB_USER")
-	EnvRepo = os.Getenv("GITHUB_REPO")
+	EnvUser = nvls(os.Getenv("GITHUB_USER"), user)
+	EnvRepo = nvls(os.Getenv("GITHUB_REPO"), repo)
 	EnvApiEndpoint = os.Getenv("GITHUB_API")
 }
 
