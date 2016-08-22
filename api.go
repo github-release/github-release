@@ -8,6 +8,8 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"reflect"
+	"strings"
 )
 
 const (
@@ -99,7 +101,21 @@ func DoAuthRequest(method, url, bodyType, token string, headers map[string]strin
 }
 
 func GithubGet(uri string, v interface{}) error {
-	resp, err := http.Get(ApiURL() + uri)
+	vv := reflect.ValueOf(v)
+	if !(vv.Kind() == reflect.Ptr && vv.Elem().Kind() == reflect.Slice) {
+		return fmt.Errorf("v param must be a pointer to a slice")
+	}
+
+	return githubGet(uri, v, false)
+}
+
+func githubGet(uri string, v interface{}, isURL bool) error {
+	url := uri
+	if !isURL {
+		url = ApiURL() + uri
+	}
+
+	resp, err := http.Get(url)
 	if resp != nil {
 		defer resp.Body.Close()
 	}
@@ -107,7 +123,7 @@ func GithubGet(uri string, v interface{}) error {
 		return fmt.Errorf("could not fetch releases, %v", err)
 	}
 
-	vprintln("GET", ApiURL()+uri, "->", resp)
+	vprintln("GET", url, "->", resp)
 
 	if resp.StatusCode != http.StatusOK {
 		return fmt.Errorf("github did not response with 200 OK but with %v", resp.Status)
@@ -119,8 +135,16 @@ func GithubGet(uri string, v interface{}) error {
 		r = io.TeeReader(resp.Body, os.Stdout)
 	}
 
-	if err = json.NewDecoder(r).Decode(v); err != nil {
+	vv := reflect.ValueOf(v).Elem()
+	sub := reflect.New(vv.Type())
+	if err = json.NewDecoder(r).Decode(sub.Interface()); err != nil {
 		return fmt.Errorf("could not unmarshall JSON into Release struct, %v", err)
+	}
+	vv.Set(reflect.AppendSlice(vv, sub.Elem()))
+
+	links := parseHdrLink(resp.Header.Get("Link"))
+	if nextURL, ok := links["next"]; ok {
+		return githubGet(nextURL, v, true)
 	}
 
 	return nil
@@ -132,4 +156,15 @@ func ApiURL() string {
 	} else {
 		return EnvApiEndpoint
 	}
+}
+
+func parseHdrLink(linkField string) map[string]string {
+	links := make(map[string]string)
+
+	for _, l := range strings.Split(linkField, ", ") {
+		e := strings.Split(l, "; rel=")
+		links[strings.Trim(e[1], `"`)] = strings.Trim(e[0], "<>")
+	}
+
+	return links
 }
