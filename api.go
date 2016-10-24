@@ -142,7 +142,11 @@ func githubGet(uri string, v interface{}, isURL bool) error {
 	}
 	vv.Set(reflect.AppendSlice(vv, sub.Elem()))
 
-	links := parseHdrLink(resp.Header.Get("Link"))
+	linkHeader := resp.Header.Get("Link")
+	if linkHeader == "" {
+		return nil
+	}
+	links := parseHdrLink(linkHeader)
 	if nextURL, ok := links["next"]; ok {
 		return githubGet(nextURL, v, true)
 	}
