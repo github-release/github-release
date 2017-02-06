@@ -11,6 +11,8 @@ UNIX_EXECUTABLES := \
 	linux/amd64/$(EXECUTABLE)
 WIN_EXECUTABLES := \
 	windows/amd64/$(EXECUTABLE).exe
+DOCKER_EXECUTABLES := \
+	docker/amd64/$(EXECUTABLE)
 
 COMPRESSED_EXECUTABLES=$(UNIX_EXECUTABLES:%=%.tar.bz2) $(WIN_EXECUTABLES:%.exe=%.zip)
 COMPRESSED_EXECUTABLE_TARGETS=$(COMPRESSED_EXECUTABLES:%=bin/%)
@@ -46,6 +48,8 @@ bin/linux/amd64/$(EXECUTABLE):
 	GOARCH=amd64 GOOS=linux go build -o "$@"
 bin/windows/amd64/$(EXECUTABLE).exe:
 	GOARCH=amd64 GOOS=windows go build -o "$@"
+bin/docker/amd64/$(EXECUTABLE):
+	GOARCH=amd64 CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o "$@"
 
 # compressed artifacts, makes a huge difference (Go executable is ~9MB,
 # after compressing ~2MB)
@@ -69,6 +73,9 @@ dep:
 
 $(EXECUTABLE): dep
 	go build -o "$@"
+
+docker: bin/docker/amd64/$(EXECUTABLE)
+	docker build -t $(EXECUTABLE) .
 
 install:
 	go install
