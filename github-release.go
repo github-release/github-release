@@ -62,6 +62,13 @@ type Options struct {
 		Repo  string `goptions:"-r, --repo, description='Github repo (required if $GITHUB_REPO not set)'"`
 		Tag   string `goptions:"-t, --tag, obligatory, description='Git tag of release to delete'"`
 	} `goptions:"delete"`
+	DeleteFile struct {
+		Token string `goptions:"-s, --security-token, description='Github token (required if $GITHUB_TOKEN not set)'"`
+		User  string `goptions:"-u, --user, description='Github user (required if $GITHUB_USER not set)'"`
+		Repo  string `goptions:"-r, --repo, description='Github repo (required if $GITHUB_REPO not set)'"`
+		Tag   string `goptions:"-t, --tag, obligatory, description='Git tag of release to delete'"`
+		Name  string `goptions:"-n, --name, description='Name of the file to be deleted', obligatory"`
+	} `goptions:"deletef"`
 	Info struct {
 		Token string `goptions:"-s, --security-token, description='Github token ($GITHUB_TOKEN if set). required if repo is private.'"`
 		User  string `goptions:"-u, --user, description='Github repo user or organisation (required if $GITHUB_USER not set)'"`
@@ -78,6 +85,7 @@ var commands = map[goptions.Verbs]Command{
 	"release":  releasecmd,
 	"edit":     editcmd,
 	"delete":   deletecmd,
+	"deletef":  deletefilecmd,
 	"info":     infocmd,
 }
 
