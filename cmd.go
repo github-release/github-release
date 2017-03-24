@@ -155,6 +155,7 @@ func downloadcmd(opt Options) error {
 	tag := opt.Download.Tag
 	name := opt.Download.Name
 	latest := opt.Download.Latest
+	stdout := opt.Download.Stdout
 
 	vprintln("downloading...")
 
@@ -182,7 +183,7 @@ func downloadcmd(opt Options) error {
 	}
 
 	if assetId == 0 {
-		return fmt.Errorf("coud not find asset named %s", name)
+		return fmt.Errorf("could not find asset named %s", name)
 	}
 
 	var resp *http.Response
@@ -214,13 +215,19 @@ func downloadcmd(opt Options) error {
 		return fmt.Errorf("github did not respond with 200 OK but with %v", resp.Status)
 	}
 
-	out, err := os.Create(name)
-	if err != nil {
-		return fmt.Errorf("could not create file %s", name)
+	var w io.Writer
+	if stdout {
+		w = os.Stdout
+	} else {
+		out, err := os.Create(name)
+		if err != nil {
+			return fmt.Errorf("could not create file %s", name)
+		}
+		defer out.Close()
+		w = out
 	}
-	defer out.Close()
 
-	n, err := io.Copy(out, resp.Body)
+	n, err := io.Copy(w, resp.Body)
 	if n != contentLength {
 		return fmt.Errorf("downloaded data did not match content length %d != %d", contentLength, n)
 	}
