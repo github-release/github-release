@@ -21,6 +21,7 @@ type Options struct {
 		Latest bool   `goptions:"-l, --latest, description='Download latest release (required if tag is not specified)',mutexgroup='input'"`
 		Tag    string `goptions:"-t, --tag, description='Git tag to download from (required if latest is not specified)', mutexgroup='input',obligatory"`
 		Name   string `goptions:"-n, --name, description='Name of the file', obligatory"`
+		Stdout bool   `goptions:"-d, --stdout, description='Write the downloaded file to stdout, instead of to a file'"`
 	} `goptions:"download"`
 	Upload struct {
 		Token string   `goptions:"-s, --security-token, description='Github token (required if $GITHUB_TOKEN not set)'"`

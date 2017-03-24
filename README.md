@@ -24,6 +24,14 @@ on the [releases
 page](https://github.com/aktau/github-release/releases/latest). Yes, that's
 dogfooding, check the makefile!
 
+To install and unzip the `github-release` binary to the current directory in one
+line, via `curl`:
+
+```
+# Substitute "linux" for your platform as appropriate
+curl --silent --location https://github.com/aktau/github-release/releases/download/v0.6.2/linux-amd64-github-release.tar.bz2 | tar -j --strip-components=3 -x bin/linux/amd64/github-release
+```
+
 If you have Go installed, you can just do:
 
 ```sh
