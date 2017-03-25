@@ -448,13 +448,13 @@ func deletefilecmd(opt Options) error {
 	resp, err := DoAuthRequest("DELETE", ApiURL()+fmt.Sprintf("/repos/%s/%s/releases/%d",
 		user, repo, assetId), "application/json", token, nil, nil)
 	if err != nil {
-		return fmt.Errorf("release deletion unsuccesful, %v", err)
+		return fmt.Errorf("release file deletion unsuccesful, %v", err)
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusNoContent {
-		return fmt.Errorf("could not delete the release corresponding to tag %s on repo %s/%s",
-			tag, user, repo)
+		return fmt.Errorf("could not delete the release file corresponding to tag %s on repo %s/%s/%s",
+			tag, user, repo, name)
 	}
 
 	return nil
