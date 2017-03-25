@@ -214,11 +214,16 @@ func downloadcmd(opt Options) error {
 		return fmt.Errorf("github did not respond with 200 OK but with %v", resp.Status)
 	}
 
-	out, err := os.Create(name)
-	if err != nil {
-		return fmt.Errorf("could not create file %s", name)
+	out := os.Stdout // Pipe the asset to stdout by default.
+	if isCharDevice(out) {
+		// If stdout is a char device, assume it's a TTY (terminal). In this
+		// case, don't pipe th easset to stdout, but create it as a file in
+		// the current working folder.
+		if out, err = os.Create(name); err != nil {
+			return fmt.Errorf("could not create file %s", name)
+		}
+		defer out.Close()
 	}
-	defer out.Close()
 
 	n, err := io.Copy(out, resp.Body)
 	if n != contentLength {

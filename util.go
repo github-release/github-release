@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"os"
 	"time"
 )
 
@@ -18,7 +19,7 @@ func nvls(xs ...string) string {
 
 func vprintln(a ...interface{}) (int, error) {
 	if VERBOSITY > 0 {
-		return fmt.Println(a...)
+		return fmt.Fprintln(os.Stderr, a...)
 	}
 
 	return 0, nil
@@ -26,7 +27,7 @@ func vprintln(a ...interface{}) (int, error) {
 
 func vprintf(format string, a ...interface{}) (int, error) {
 	if VERBOSITY > 0 {
-		return fmt.Printf(format, a...)
+		return fmt.Fprintf(os.Stderr, format, a...)
 	}
 
 	return 0, nil
@@ -38,4 +39,14 @@ func timeFmtOr(t *time.Time, fmt, def string) string {
 		return def
 	}
 	return t.Format(fmt)
+}
+
+// isCharDevice returns true if f is a character device (panics if f can't
+// be stat'ed).
+func isCharDevice(f *os.File) bool {
+	stat, err := f.Stat()
+	if err != nil {
+		panic(err)
+	}
+	return (stat.Mode() & os.ModeCharDevice) != 0
 }
