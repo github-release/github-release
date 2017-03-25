@@ -15,6 +15,11 @@ artifact. `github-release` takes care of those little details.
 It might still be a bit rough around the edges, pull requests are
 welcome!
 
+**NOTE**: I've been made aware of the existence of the
+[gothub](https://github.com/itchio/gothub) fork. Since I have very little
+time to work on the project and have been a really bad maintainer, I suggest
+checking it out to see if your issues have been solved there.
+
 How to install
 ==============
 
