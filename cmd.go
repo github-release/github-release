@@ -256,6 +256,15 @@ func releasecmd(opt Options) error {
 		return err
 	}
 
+	// Check if we need to read the description from stdin.
+	if desc == "-" {
+		b, err := ioutil.ReadAll(os.Stdin)
+		if err != nil {
+			return fmt.Errorf("could not read description from stdin: %v", err)
+		}
+		desc = string(b)
+	}
+
 	params := ReleaseCreate{
 		TagName:         tag,
 		TargetCommitish: target,
@@ -322,6 +331,15 @@ func editcmd(opt Options) error {
 	}
 
 	vprintf("release %v has id %v\n", tag, id)
+
+	// Check if we need to read the description from stdin.
+	if desc == "-" {
+		b, err := ioutil.ReadAll(os.Stdin)
+		if err != nil {
+			return fmt.Errorf("could not read description from stdin: %v", err)
+		}
+		desc = string(b)
+	}
 
 	/* the release create struct works for editing releases as well */
 	params := ReleaseCreate{

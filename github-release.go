@@ -40,7 +40,7 @@ type Options struct {
 		Repo       string `goptions:"-r, --repo, description='Github repo (required if $GITHUB_REPO not set)'"`
 		Tag        string `goptions:"-t, --tag, obligatory, description='Git tag to create a release from'"`
 		Name       string `goptions:"-n, --name, description='Name of the release (defaults to tag)'"`
-		Desc       string `goptions:"-d, --description, description='Description of the release (defaults to tag)'"`
+		Desc       string `goptions:"-d, --description, description='Release description, use - for reading a description from stdin (defaults to tag)'"`
 		Target     string `goptions:"-c, --target, description='Commit SHA or branch to create release of (defaults to the repository default branch)'"`
 		Draft      bool   `goptions:"--draft, description='The release is a draft'"`
 		Prerelease bool   `goptions:"-p, --pre-release, description='The release is a pre-release'"`
@@ -51,7 +51,7 @@ type Options struct {
 		Repo       string `goptions:"-r, --repo, description='Github repo (required if $GITHUB_REPO not set)'"`
 		Tag        string `goptions:"-t, --tag, obligatory, description='Git tag to edit the release of'"`
 		Name       string `goptions:"-n, --name, description='New name of the release (defaults to tag)'"`
-		Desc       string `goptions:"-d, --description, description='New description of the release (defaults to tag)'"`
+		Desc       string `goptions:"-d, --description, description='New release description, use - for reading a description from stdin (defaults to tag)'"`
 		Draft      bool   `goptions:"--draft, description='The release is a draft'"`
 		Prerelease bool   `goptions:"-p, --pre-release, description='The release is a pre-release'"`
 	} `goptions:"edit"`
