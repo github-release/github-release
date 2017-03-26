@@ -19,3 +19,14 @@ type Asset struct {
 	Created     time.Time `json:"created_at"`
 	Published   time.Time `json:"published_at"`
 }
+
+// findAssetID returns the asset ID if name can be found in assets,
+// otherwise returns -1.
+func findAssetID(assets []Asset, name string) int {
+	for _, asset := range assets {
+		if asset.Name == name {
+			return asset.Id
+		}
+	}
+	return -1
+}

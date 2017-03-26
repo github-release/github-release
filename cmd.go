@@ -94,6 +94,17 @@ func uploadcmd(opt Options) error {
 		return err
 	}
 
+	// If asked to replace, first delete the existing asset, if any.
+	if assetID := findAssetID(rel.Assets, name); opt.Upload.Replace && assetID != -1 {
+		URL := nvls(EnvApiEndpoint, github.DefaultBaseURL) +
+			fmt.Sprintf(ASSET_DOWNLOAD_URI, user, repo, assetID)
+		resp, err := github.DoAuthRequest("DELETE", URL, "application/json", token, nil, nil)
+		if err != nil || resp.StatusCode != http.StatusNoContent {
+			return fmt.Errorf("could not replace asset %s (ID: %d), deletion failed (error: %v, status: %s)",
+				name, assetID, err, resp.Status)
+		}
+	}
+
 	v := url.Values{}
 	v.Set("name", name)
 	if label != "" {
@@ -154,14 +165,8 @@ func downloadcmd(opt Options) error {
 		return err
 	}
 
-	assetId := 0
-	for _, asset := range rel.Assets {
-		if asset.Name == name {
-			assetId = asset.Id
-		}
-	}
-
-	if assetId == 0 {
+	assetID := findAssetID(rel.Assets, name)
+	if assetID == -1 {
 		return fmt.Errorf("coud not find asset named %s", name)
 	}
 
@@ -170,7 +175,7 @@ func downloadcmd(opt Options) error {
 		// Use the regular github.com site it we don't have a token.
 		resp, err = http.Get("https://github.com" + fmt.Sprintf("/%s/%s/releases/download/%s/%s", user, repo, tag, name))
 	} else {
-		url := nvls(EnvApiEndpoint, github.DefaultBaseURL) + fmt.Sprintf(ASSET_DOWNLOAD_URI, user, repo, assetId)
+		url := nvls(EnvApiEndpoint, github.DefaultBaseURL) + fmt.Sprintf(ASSET_DOWNLOAD_URI, user, repo, assetID)
 		resp, err = github.DoAuthRequest("GET", url, "", token, map[string]string{
 			"Accept": "application/octet-stream",
 		}, nil)
@@ -401,7 +406,7 @@ func deletecmd(opt Options) error {
 	resp, err := github.DoAuthRequest("DELETE", baseURL+fmt.Sprintf("/repos/%s/%s/releases/%d",
 		user, repo, id), "application/json", token, nil, nil)
 	if err != nil {
-		return fmt.Errorf("release deletion unsuccesful, %v", err)
+		return fmt.Errorf("release deletion failed: %v", err)
 	}
 	defer resp.Body.Close()
 
