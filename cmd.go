@@ -402,14 +402,12 @@ func deletecmd(opt Options) error {
 
 	vprintf("release %v has id %v\n", tag, id)
 
-	resp, err := httpDelete(ApiURL()+fmt.Sprintf("/repos/%s/%s/releases/%d",
-		user, repo, id), token)
-	if resp != nil {
-		defer resp.Body.Close()
-	}
+	resp, err := DoAuthRequest("DELETE", ApiURL()+fmt.Sprintf("/repos/%s/%s/releases/%d",
+		user, repo, id), "application/json", token, nil, nil)
 	if err != nil {
 		return fmt.Errorf("release deletion unsuccesful, %v", err)
 	}
+	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusNoContent {
 		return fmt.Errorf("could not delete the release corresponding to tag %s on repo %s/%s",
@@ -417,13 +415,4 @@ func deletecmd(opt Options) error {
 	}
 
 	return nil
-}
-
-func httpDelete(url, token string) (*http.Response, error) {
-	resp, err := DoAuthRequest("DELETE", url, "application/json", token, nil, nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return resp, nil
 }
