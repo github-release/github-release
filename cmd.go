@@ -24,47 +24,34 @@ func infocmd(opt Options) error {
 		return fmt.Errorf("user and repo need to be passed as arguments")
 	}
 
-	/* find regular git tags */
-	allTags, err := Tags(user, repo, token)
+	// Find regular git tags.
+	tags, err := Tags(user, repo, token)
 	if err != nil {
 		return fmt.Errorf("could not fetch tags, %v", err)
 	}
-	if len(allTags) == 0 {
+	if len(tags) == 0 {
 		return fmt.Errorf("no tags available for %v/%v", user, repo)
 	}
 
-	/* list all tags */
-	tags := make([]Tag, 0, len(allTags))
-	for _, t := range allTags {
-		/* if the user only requested see one tag, skip the ones that
-		 * don't match */
-		if tag != "" && t.Name != tag {
-			continue
-		}
-		tags = append(tags, t)
-	}
-
-	/* if no tags conformed to the users' request, exit */
-	if len(tags) == 0 {
-		return fmt.Errorf("no tag '%v' was found for %v/%v", tag, user, repo)
-	}
-
-	fmt.Println("git tags:")
+	fmt.Println("tags:")
 	for _, t := range tags {
-		fmt.Println("-", t.String())
+		// If the user only requested one tag, filter out the rest.
+		if tag == "" || t.Name == tag {
+			fmt.Println("-", &t)
+		}
 	}
 
-	/* list releases + assets */
+	// List releases + assets.
 	var releases []Release
 	if tag == "" {
-		/* get all releases */
+		// Get all releases.
 		vprintf("%v/%v: getting information for all releases\n", user, repo)
 		releases, err = Releases(user, repo, token)
 		if err != nil {
 			return err
 		}
 	} else {
-		/* get only one release */
+		// Get only one release.
 		vprintf("%v/%v/%v: getting information for the release\n", user, repo, tag)
 		release, err := ReleaseOfTag(user, repo, tag, token)
 		if err != nil {
@@ -73,14 +60,9 @@ func infocmd(opt Options) error {
 		releases = []Release{*release}
 	}
 
-	/* if no tags conformed to the users' request, exit */
-	if len(releases) == 0 {
-		return fmt.Errorf("no release(s) were found for %v/%v (%v)", user, repo, tag)
-	}
-
 	fmt.Println("releases:")
 	for _, release := range releases {
-		fmt.Println("-", release.String())
+		fmt.Println("-", &release)
 	}
 
 	return nil
