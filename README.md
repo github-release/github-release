@@ -115,10 +115,11 @@ export GITHUB_API=http://github.company.com/api/v3
 Used libraries
 ==============
 
-| Package                                                                  | Description         | License |
-| ------------------------------------------------------------------------ | ------------------- | ------- |
-| [github.com/dustin/go-humanize](https://github.com/dustin/go-humanize)   | humanize file sizes | MIT     |
-| [github.com/voxelbrain/goptions](https://github.com/voxelbrain/goptions) | option parsing      | BSD     |
+| Package                                                                    | Description         | License |
+| ------------------------------------------------------------------------   | ------------------- | ------- |
+| [github.com/dustin/go-humanize](https://github.com/dustin/go-humanize)     | humanize file sizes | MIT     |
+| [github.com/tomnomnom/linkheader](https://github.com/tomnomnom/linkheader) | GH API pagination   | MIT     |
+| [github.com/voxelbrain/goptions](https://github.com/voxelbrain/goptions)   | option parsing      | BSD     |
 
 Todo
 ====
