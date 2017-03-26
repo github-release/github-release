@@ -106,7 +106,7 @@ func uploadcmd(opt Options) error {
 		return err
 	}
 
-	/* find the release corresponding to the entered tag, if any */
+	// Find the release corresponding to the entered tag, if any.
 	rel, err := ReleaseOfTag(user, repo, tag, token)
 	if err != nil {
 		return err
@@ -132,17 +132,15 @@ func uploadcmd(opt Options) error {
 		if msg, err := ToMessage(resp.Body); err == nil {
 			return fmt.Errorf("could not upload, status code (%v), %v",
 				resp.Status, msg)
-		} else {
-			return fmt.Errorf("could not upload, status code (%v)", resp.Status)
 		}
+		return fmt.Errorf("could not upload, status code (%v)", resp.Status)
 	}
 
 	if VERBOSITY != 0 {
-		body, err := ioutil.ReadAll(resp.Body)
-		if err != nil {
-			return fmt.Errorf("error while reading response, %v", err)
+		vprintf("BODY: ")
+		if _, err := io.Copy(os.Stderr, resp.Body); err != nil {
+			return fmt.Errorf("while reading response, %v", err)
 		}
-		vprintln("BODY:", string(body))
 	}
 
 	return nil
