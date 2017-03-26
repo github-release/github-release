@@ -166,13 +166,11 @@ func downloadcmd(opt Options) error {
 	}
 
 	var resp *http.Response
-	var url string
 	if token == "" {
-		const GithubURL = "https://github.com"
-		url = GithubURL + fmt.Sprintf("/%s/%s/releases/download/%s/%s", user, repo, tag, name)
-		resp, err = http.Get(url)
+		// Use the regular github.com site it we don't have a token.
+		resp, err = http.Get("https://github.com" + fmt.Sprintf("/%s/%s/releases/download/%s/%s", user, repo, tag, name))
 	} else {
-		url = nvls(EnvApiEndpoint, github.DefaultBaseURL) + fmt.Sprintf(ASSET_DOWNLOAD_URI, user, repo, assetId)
+		url := nvls(EnvApiEndpoint, github.DefaultBaseURL) + fmt.Sprintf(ASSET_DOWNLOAD_URI, user, repo, assetId)
 		resp, err = github.DoAuthRequest("GET", url, "", token, map[string]string{
 			"Accept": "application/octet-stream",
 		}, nil)
@@ -182,7 +180,7 @@ func downloadcmd(opt Options) error {
 	}
 	defer resp.Body.Close()
 
-	vprintln("GET", url, "->", resp)
+	vprintln("GET", resp.Request.URL, "->", resp)
 
 	contentLength, err := strconv.ParseInt(resp.Header.Get("Content-Length"), 10, 64)
 	if err != nil {
@@ -204,9 +202,15 @@ func downloadcmd(opt Options) error {
 		defer out.Close()
 	}
 
-	n, err := io.Copy(out, resp.Body)
-	if n != contentLength {
-		return fmt.Errorf("downloaded data did not match content length %d != %d", contentLength, n)
+	return mustCopyN(out, resp.Body, contentLength)
+}
+
+// mustCopyN attempts to copy exactly N bytes, if this fails, an error is
+// returned.
+func mustCopyN(w io.Writer, r io.Reader, n int64) error {
+	an, err := io.Copy(w, r)
+	if an != n {
+		return fmt.Errorf("data did not match content length %d != %d", an, n)
 	}
 	return err
 }
