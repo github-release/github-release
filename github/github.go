@@ -23,8 +23,8 @@ var VERBOSITY = 0
 //
 // TODO: This function is amazingly ugly (separate headers, token, no API
 // URL constructions, et cetera).
-func DoAuthRequest(method, url, bodyType, token string, headers map[string]string, body io.Reader) (*http.Response, error) {
-	req, err := newAuthRequest(method, url, bodyType, token, headers, body)
+func DoAuthRequest(method, url, mime, token string, headers map[string]string, body io.Reader) (*http.Response, error) {
+	req, err := newAuthRequest(method, url, mime, token, headers, body)
 	if err != nil {
 		return nil, err
 	}
@@ -219,8 +219,8 @@ func (c Client) getPaginated(uri string) (io.ReadCloser, error) {
 }
 
 // Create a new request that sends the auth token.
-func newAuthRequest(method, url, bodyType, token string, headers map[string]string, body io.Reader) (*http.Request, error) {
-	vprintln("creating request:", method, url, bodyType, token)
+func newAuthRequest(method, url, mime, token string, headers map[string]string, body io.Reader) (*http.Request, error) {
+	vprintln("creating request:", method, url, mime, token)
 
 	var n int64 // content length
 	var err error
@@ -245,8 +245,8 @@ func newAuthRequest(method, url, bodyType, token string, headers map[string]stri
 		req.ContentLength = n
 	}
 
-	if bodyType != "" {
-		req.Header.Set("Content-Type", bodyType)
+	if mime != "" {
+		req.Header.Set("Content-Type", mime)
 	}
 	req.Header.Set("Authorization", "token "+token)
 
