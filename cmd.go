@@ -10,6 +10,8 @@ import (
 	"net/url"
 	"os"
 	"strconv"
+
+	"github.com/aktau/github-release/github"
 )
 
 func infocmd(opt Options) error {
@@ -118,7 +120,7 @@ func uploadcmd(opt Options) error {
 
 	url := rel.CleanUploadUrl() + "?" + v.Encode()
 
-	resp, err := DoAuthRequest("POST", url, "application/octet-stream",
+	resp, err := github.DoAuthRequest("POST", url, "application/octet-stream",
 		token, nil, file)
 	if err != nil {
 		return fmt.Errorf("can't create upload request to %v, %v", url, err)
@@ -186,11 +188,12 @@ func downloadcmd(opt Options) error {
 	var resp *http.Response
 	var url string
 	if token == "" {
-		url = GH_URL + fmt.Sprintf("/%s/%s/releases/download/%s/%s", user, repo, tag, name)
+		const GithubURL = "https://github.com"
+		url = GithubURL + fmt.Sprintf("/%s/%s/releases/download/%s/%s", user, repo, tag, name)
 		resp, err = http.Get(url)
 	} else {
-		url = ApiURL() + fmt.Sprintf(ASSET_DOWNLOAD_URI, user, repo, assetId)
-		resp, err = DoAuthRequest("GET", url, "", token, map[string]string{
+		url = nvls(EnvApiEndpoint, github.DefaultBaseURL) + fmt.Sprintf(ASSET_DOWNLOAD_URI, user, repo, assetId)
+		resp, err = github.DoAuthRequest("GET", url, "", token, map[string]string{
 			"Accept": "application/octet-stream",
 		}, nil)
 	}
@@ -285,9 +288,8 @@ func releasecmd(opt Options) error {
 	}
 	reader := bytes.NewReader(payload)
 
-	uri := fmt.Sprintf("/repos/%s/%s/releases", user, repo)
-	resp, err := DoAuthRequest("POST", ApiURL()+uri, "application/json",
-		token, nil, reader)
+	URL := nvls(EnvApiEndpoint, github.DefaultBaseURL) + fmt.Sprintf("/repos/%s/%s/releases", user, repo)
+	resp, err := github.DoAuthRequest("POST", URL, "application/json", token, nil, reader)
 	if err != nil {
 		return fmt.Errorf("while submitting %v, %v", string(payload), err)
 	}
@@ -352,9 +354,8 @@ func editcmd(opt Options) error {
 		return fmt.Errorf("can't encode release creation params, %v", err)
 	}
 
-	uri := fmt.Sprintf("/repos/%s/%s/releases/%d", user, repo, id)
-	resp, err := DoAuthRequest("PATCH", ApiURL()+uri, "application/json",
-		token, nil, bytes.NewReader(payload))
+	URL := nvls(EnvApiEndpoint, github.DefaultBaseURL) + fmt.Sprintf("/repos/%s/%s/releases/%d", user, repo, id)
+	resp, err := github.DoAuthRequest("PATCH", URL, "application/json", token, nil, bytes.NewReader(payload))
 	if err != nil {
 		return fmt.Errorf("while submitting %v, %v", string(payload), err)
 	}
@@ -394,7 +395,8 @@ func deletecmd(opt Options) error {
 
 	vprintf("release %v has id %v\n", tag, id)
 
-	resp, err := DoAuthRequest("DELETE", ApiURL()+fmt.Sprintf("/repos/%s/%s/releases/%d",
+	baseURL := nvls(EnvApiEndpoint, github.DefaultBaseURL)
+	resp, err := github.DoAuthRequest("DELETE", baseURL+fmt.Sprintf("/repos/%s/%s/releases/%d",
 		user, repo, id), "application/json", token, nil, nil)
 	if err != nil {
 		return fmt.Errorf("release deletion unsuccesful, %v", err)
