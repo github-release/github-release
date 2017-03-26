@@ -120,12 +120,10 @@ func uploadcmd(opt Options) error {
 
 	resp, err := DoAuthRequest("POST", url, "application/octet-stream",
 		token, nil, file)
-	if resp != nil {
-		defer resp.Body.Close()
-	}
 	if err != nil {
 		return fmt.Errorf("can't create upload request to %v, %v", url, err)
 	}
+	defer resp.Body.Close()
 
 	vprintln("RESPONSE:", resp)
 	if resp.StatusCode != http.StatusCreated {
@@ -196,12 +194,10 @@ func downloadcmd(opt Options) error {
 			"Accept": "application/octet-stream",
 		}, nil)
 	}
-	if resp != nil {
-		defer resp.Body.Close()
-	}
 	if err != nil {
 		return fmt.Errorf("could not fetch releases, %v", err)
 	}
+	defer resp.Body.Close()
 
 	vprintln("GET", url, "->", resp)
 
@@ -292,12 +288,10 @@ func releasecmd(opt Options) error {
 	uri := fmt.Sprintf("/repos/%s/%s/releases", user, repo)
 	resp, err := DoAuthRequest("POST", ApiURL()+uri, "application/json",
 		token, nil, reader)
-	if resp != nil {
-		defer resp.Body.Close()
-	}
 	if err != nil {
 		return fmt.Errorf("while submitting %v, %v", string(payload), err)
 	}
+	defer resp.Body.Close()
 
 	vprintln("RESPONSE:", resp)
 	if resp.StatusCode != http.StatusCreated {
@@ -361,12 +355,10 @@ func editcmd(opt Options) error {
 	uri := fmt.Sprintf("/repos/%s/%s/releases/%d", user, repo, id)
 	resp, err := DoAuthRequest("PATCH", ApiURL()+uri, "application/json",
 		token, nil, bytes.NewReader(payload))
-	if resp != nil {
-		defer resp.Body.Close()
-	}
 	if err != nil {
 		return fmt.Errorf("while submitting %v, %v", string(payload), err)
 	}
+	defer resp.Body.Close()
 
 	vprintln("RESPONSE:", resp)
 	if resp.StatusCode != http.StatusOK {
