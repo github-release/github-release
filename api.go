@@ -49,7 +49,7 @@ func materializeFile(f *os.File) (io.Reader, int64, error) {
 }
 
 /* create a new request that sends the auth token */
-func NewAuthRequest(method, url, bodyType, token string, headers map[string]string, body io.Reader) (*http.Request, error) {
+func newAuthRequest(method, url, bodyType, token string, headers map[string]string, body io.Reader) (*http.Request, error) {
 	vprintln("creating request:", method, url, bodyType, token)
 
 	var n int64 // content length
@@ -85,7 +85,7 @@ func NewAuthRequest(method, url, bodyType, token string, headers map[string]stri
 }
 
 func DoAuthRequest(method, url, bodyType, token string, headers map[string]string, body io.Reader) (*http.Response, error) {
-	req, err := NewAuthRequest(method, url, bodyType, token, headers, body)
+	req, err := newAuthRequest(method, url, bodyType, token, headers, body)
 	if err != nil {
 		return nil, err
 	}
