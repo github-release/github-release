@@ -136,11 +136,20 @@ func (c Client) Get(uri string, v interface{}) error {
 // TODO: Rework the API so we can cleanly append per_page=100 as a URL
 // parameter.
 func (c Client) getPaginated(uri string) (io.ReadCloser, error) {
-	v := url.Values{}
+	// Parse the passed-in URI to make sure we don't lose any values when
+	// setting our own params.
+	u, err := url.Parse(c.BaseURL + uri)
+	if err != nil {
+		return nil, err
+	}
+
+	v := u.Query()
+	v.Set("per_page", "100") // The default is 30, this makes it less likely for Github to rate-limit us.
 	if c.Token != "" {
 		v.Set("access_token", c.Token)
 	}
-	resp, err := http.Get(c.BaseURL + uri + "?" + v.Encode())
+	u.RawQuery = v.Encode()
+	resp, err := http.Get(u.String())
 	if err != nil {
 		return nil, err
 	}
