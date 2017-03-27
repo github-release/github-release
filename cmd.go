@@ -433,20 +433,16 @@ func deletefilecmd(opt Options) error {
 		return err
 	}
 
-	assetId := 0
-	for _, asset := range rel.Assets {
-		if asset.Name == name {
-			assetId = asset.Id
-		}
-	}
-
-	if assetId == 0 {
+	assetID := findAssetID(rel.Assets, name)
+	if assetID == -1 {
 		return fmt.Errorf("coud not find asset named %s", name)
 	}
-	vprintf("release %v has assetId %v\n", tag, assetId)
 
-	resp, err := DoAuthRequest("DELETE", ApiURL()+fmt.Sprintf("/repos/%s/%s/releases/%d",
-		user, repo, assetId), "application/json", token, nil, nil)
+	vprintf("release %v has assetID %v\n", tag, assetID)
+
+	baseURL := nvls(EnvApiEndpoint, github.DefaultBaseURL)
+	resp, err := github.DoAuthRequest("DELETE", baseURL+fmt.Sprintf("/repos/%s/%s/releases/%d",
+		user, repo, assetID), "application/json", token, nil, nil)
 	if err != nil {
 		return fmt.Errorf("release file deletion unsuccesful, %v", err)
 	}
