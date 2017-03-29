@@ -58,8 +58,9 @@ bin/windows/amd64/$(EXECUTABLE).exe:
 release: clean
 	$(MAKE) bin/tmp/$(EXECUTABLE) $(COMPRESSED_EXECUTABLE_TARGETS)
 	git push && git push --tags
-	bin/tmp/$(EXECUTABLE) release -u $(USER) -r $(EXECUTABLE) \
-		-t $(LAST_TAG) -n $(LAST_TAG) || true
+	git log --format=%B $(LAST_TAG) -1 | \
+		bin/tmp/$(EXECUTABLE) release -u $(USER) -r $(EXECUTABLE) \
+		-t $(LAST_TAG) -n $(LAST_TAG) -d - || true
 	$(foreach FILE,$(COMPRESSED_EXECUTABLES),$(UPLOAD_CMD);)
 
 # install and/or update all dependencies, run this from the project directory
