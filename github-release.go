@@ -67,6 +67,7 @@ type Options struct {
 		User  string `goptions:"-u, --user, description='Github repo user or organisation (required if $GITHUB_USER not set)'"`
 		Repo  string `goptions:"-r, --repo, description='Github repo (required if $GITHUB_REPO not set)'"`
 		Tag   string `goptions:"-t, --tag, description='Git tag to query (optional)'"`
+		JSON  bool   `goptions:"-j, --json, description='Emit info as JSON instead of text'"`
 	} `goptions:"info"`
 }
 

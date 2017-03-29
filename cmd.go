@@ -25,20 +25,26 @@ func infocmd(opt Options) error {
 	}
 
 	// Find regular git tags.
-	tags, err := Tags(user, repo, token)
+	foundTags, err := Tags(user, repo, token)
 	if err != nil {
 		return fmt.Errorf("could not fetch tags, %v", err)
 	}
-	if len(tags) == 0 {
+	if len(foundTags) == 0 {
 		return fmt.Errorf("no tags available for %v/%v", user, repo)
 	}
 
-	fmt.Println("tags:")
-	for _, t := range tags {
+	tags := foundTags[:0]
+	for _, t := range foundTags {
 		// If the user only requested one tag, filter out the rest.
 		if tag == "" || t.Name == tag {
-			fmt.Println("-", &t)
+			tags = append(tags, t)
 		}
+	}
+
+	renderer := renderInfoText
+
+	if opt.Info.JSON {
+		renderer = renderInfoJSON
 	}
 
 	// List releases + assets.
@@ -60,12 +66,35 @@ func infocmd(opt Options) error {
 		releases = []Release{*release}
 	}
 
+	return renderer(tags, releases)
+}
+
+func renderInfoText(tags []Tag, releases []Release) error {
+	fmt.Println("tags:")
+	for _, tag := range tags {
+		fmt.Println("-", &tag)
+	}
+
 	fmt.Println("releases:")
 	for _, release := range releases {
 		fmt.Println("-", &release)
 	}
 
 	return nil
+}
+
+func renderInfoJSON(tags []Tag, releases []Release) error {
+	out := struct {
+		Tags     []Tag
+		Releases []Release
+	}{
+		Tags:     tags,
+		Releases: releases,
+	}
+
+	enc := json.NewEncoder(os.Stdout)
+	enc.SetIndent("", "    ")
+	return enc.Encode(&out)
 }
 
 func uploadcmd(opt Options) error {
