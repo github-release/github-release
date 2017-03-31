@@ -11,7 +11,6 @@ import (
 
 const (
 	RELEASE_LIST_URI    = "/repos/%s/%s/releases"
-	RELEASE_BY_TAG_URI  = "/repos/%s/%s/releases/tags/%s" // /repos/:owner/:repo/releases/tags/:tag
 	RELEASE_LATEST_URI  = "/repos/%s/%s/releases/latest"
 	RELEASE_DATE_FORMAT = "02/01/2006 at 15:04"
 )
@@ -112,11 +111,19 @@ func LatestRelease(user, repo, token string) (*Release, error) {
 	return &releases[latestRelIndex], nil
 }
 
-// ReleaseOfTag returns the Github release corresponding to a git tag, if it
-// exists.
 func ReleaseOfTag(user, repo, tag, token string) (*Release, error) {
-	var release Release
-	return &release, github.Client{Token: token, BaseURL: EnvApiEndpoint}.Get(fmt.Sprintf(RELEASE_BY_TAG_URI, user, repo, tag), &release)
+	releases, err := Releases(user, repo, token)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, release := range releases {
+		if release.TagName == tag {
+			return &release, nil
+		}
+	}
+
+	return nil, fmt.Errorf("could not find the release corresponding to tag %s", tag)
 }
 
 /* find the release-id of the specified tag */
