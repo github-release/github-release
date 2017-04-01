@@ -123,14 +123,29 @@ func uploadcmd(opt Options) error {
 		return err
 	}
 
-	// If asked to replace, first delete the existing asset, if any.
-	if assetID := findAssetID(rel.Assets, name); opt.Upload.Replace && assetID != -1 {
-		URL := nvls(EnvApiEndpoint, github.DefaultBaseURL) +
-			fmt.Sprintf(ASSET_DOWNLOAD_URI, user, repo, assetID)
-		resp, err := github.DoAuthRequest("DELETE", URL, "application/json", token, nil, nil)
-		if err != nil || resp.StatusCode != http.StatusNoContent {
-			return fmt.Errorf("could not replace asset %s (ID: %d), deletion failed (error: %v, status: %s)",
-				name, assetID, err, resp.Status)
+	// If the user has attempted to upload this asset before, someone could
+	// expect it to be present in the release struct (rel.Assets). However,
+	// we have to separately ask for the specific assets of this release.
+	// Reason: the assets in the Release struct do not contain incomplete
+	// uploads (which regrettably happen often using the Github API). See
+	// issue #26.
+	var assets []Asset
+	err = github.Client{Token: token, BaseURL: EnvApiEndpoint}.Get(fmt.Sprintf(ASSET_RELEASE_LIST_URI, user, repo, rel.Id), &assets)
+	if err != nil {
+		return err
+	}
+
+	// Incomplete (failed) uploads will have their state set to new. These
+	// assets are (AFAIK) useless in all cases. The only thing they will do
+	// is prevent the upload of another asset of the same name. To work
+	// around this GH API weirdness, let's just delete assets if:
+	//
+	// 1. Their state is new.
+	// 2. The user explicitly asked to delete/replace the asset with -R.
+	if asset := findAsset(assets, name); asset != nil &&
+		(asset.State == "new" || opt.Upload.Replace) {
+		if err := asset.Delete(user, repo, token); err != nil {
+			return fmt.Errorf("could not replace asset: %v", err)
 		}
 	}
 
@@ -148,21 +163,38 @@ func uploadcmd(opt Options) error {
 		return fmt.Errorf("can't create upload request to %v, %v", url, err)
 	}
 	defer resp.Body.Close()
-
 	vprintln("RESPONSE:", resp)
-	if resp.StatusCode != http.StatusCreated {
-		if msg, err := ToMessage(resp.Body); err == nil {
-			return fmt.Errorf("could not upload, status code (%v), %v",
+
+	var r io.Reader = resp.Body
+	if VERBOSITY != 0 {
+		r = io.TeeReader(r, os.Stderr)
+	}
+	var asset *Asset
+	// For HTTP status 201 and 502, Github will return a JSON encoding of
+	// the (partially) created asset.
+	if resp.StatusCode == http.StatusBadGateway || resp.StatusCode == http.StatusCreated {
+		vprintf("ASSET: ")
+		asset = new(Asset)
+		if err := json.NewDecoder(r).Decode(&asset); err != nil {
+			return fmt.Errorf("upload failed (%s), could not unmarshal asset (err: %v)", resp.Status, err)
+		}
+	} else {
+		vprintf("BODY: ")
+		if msg, err := ToMessage(r); err == nil {
+			return fmt.Errorf("could not upload, status code (%s), %v",
 				resp.Status, msg)
 		}
-		return fmt.Errorf("could not upload, status code (%v)", resp.Status)
+		return fmt.Errorf("could not upload, status code (%s)", resp.Status)
 	}
 
-	if VERBOSITY != 0 {
-		vprintf("BODY: ")
-		if _, err := io.Copy(os.Stderr, resp.Body); err != nil {
-			return fmt.Errorf("while reading response, %v", err)
+	if resp.StatusCode == http.StatusBadGateway {
+		// 502 means the upload failed, but GitHub still retains metadata
+		// (an asset in state "new"). Attempt to delete that now since it
+		// would clutter the list of release assets.
+		if err := asset.Delete(user, repo, token); err != nil {
+			return fmt.Errorf("upload failed (%s), could not delete partially uploaded asset (ID: %d, err: %v) in order to cleanly reset GH API state, please try again", resp.Status, asset.Id, err)
 		}
+		return fmt.Errorf("could not upload, status code (%s)", resp.Status)
 	}
 
 	return nil
@@ -194,17 +226,17 @@ func downloadcmd(opt Options) error {
 		return err
 	}
 
-	assetID := findAssetID(rel.Assets, name)
-	if assetID == -1 {
+	asset := findAsset(rel.Assets, name)
+	if asset == nil {
 		return fmt.Errorf("coud not find asset named %s", name)
 	}
 
 	var resp *http.Response
 	if token == "" {
-		// Use the regular github.com site it we don't have a token.
+		// Use the regular github.com site if we don't have a token.
 		resp, err = http.Get("https://github.com" + fmt.Sprintf("/%s/%s/releases/download/%s/%s", user, repo, tag, name))
 	} else {
-		url := nvls(EnvApiEndpoint, github.DefaultBaseURL) + fmt.Sprintf(ASSET_DOWNLOAD_URI, user, repo, assetID)
+		url := nvls(EnvApiEndpoint, github.DefaultBaseURL) + fmt.Sprintf(ASSET_URI, user, repo, asset.Id)
 		resp, err = github.DoAuthRequest("GET", url, "", token, map[string]string{
 			"Accept": "application/octet-stream",
 		}, nil)

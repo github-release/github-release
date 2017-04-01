@@ -121,10 +121,10 @@ func (c Client) Get(uri string, v interface{}) error {
 		// Read the array, appending all elements to the slice.
 		for dec.More() {
 			it := reflect.New(t) // Interface to a valid pointer to an object of the same type as the slice elements.
-			vprintf("OBJECT %T: %v\n", it, it)
 			if err := dec.Decode(it.Interface()); err != nil {
 				return err
 			}
+			vprintf("OBJECT %T: %v\n", it.Interface(), it)
 			sl.Set(reflect.Append(sl, it.Elem()))
 		}
 	}
