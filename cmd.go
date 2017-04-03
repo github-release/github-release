@@ -144,6 +144,7 @@ func uploadcmd(opt Options) error {
 	// 2. The user explicitly asked to delete/replace the asset with -R.
 	if asset := findAsset(assets, name); asset != nil &&
 		(asset.State == "new" || opt.Upload.Replace) {
+		vprintf("asset (id: %d) already existed in state %s: removing...\n", asset.Id, asset.Name)
 		if err := asset.Delete(user, repo, token); err != nil {
 			return fmt.Errorf("could not replace asset: %v", err)
 		}
@@ -191,6 +192,7 @@ func uploadcmd(opt Options) error {
 		// 502 means the upload failed, but GitHub still retains metadata
 		// (an asset in state "new"). Attempt to delete that now since it
 		// would clutter the list of release assets.
+		vprintf("asset (id: %d) failed to upload, it's now in state %s: removing...\n", asset.Id, asset.Name)
 		if err := asset.Delete(user, repo, token); err != nil {
 			return fmt.Errorf("upload failed (%s), could not delete partially uploaded asset (ID: %d, err: %v) in order to cleanly reset GH API state, please try again", resp.Status, asset.Id, err)
 		}
