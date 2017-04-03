@@ -182,7 +182,7 @@ func (c Client) getPaginated(uri string) (io.ReadCloser, error) {
 				return // We're done.
 			}
 
-			resp, err := http.Get(URL)
+			resp, err := client.Get(URL)
 			links = linkheader.Parse(resp.Header.Get("Link"))
 			if err != nil {
 				w.CloseWithError(err)
