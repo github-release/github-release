@@ -29,7 +29,7 @@ func DoAuthRequest(method, url, mime, token string, headers map[string]string, b
 		return nil, err
 	}
 
-	resp, err := client.Do(req)
+	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return nil, err
 	}
@@ -149,7 +149,7 @@ func (c Client) getPaginated(uri string) (io.ReadCloser, error) {
 		v.Set("access_token", c.Token)
 	}
 	u.RawQuery = v.Encode()
-	resp, err := client.Get(u.String())
+	resp, err := http.Get(u.String())
 	if err != nil {
 		return nil, err
 	}
