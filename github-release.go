@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/aktau/github-release/github"
+	"github.com/deejross/github-release/github"
 	"github.com/voxelbrain/goptions"
 )
 
