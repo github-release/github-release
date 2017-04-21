@@ -5,7 +5,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/aktau/github-release/github"
+	"github.com/deejross/github-release/github"
 	"github.com/dustin/go-humanize"
 )
 
