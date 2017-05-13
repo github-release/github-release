@@ -12,7 +12,7 @@ UNIX_EXECUTABLES := \
 WIN_EXECUTABLES := \
 	windows/amd64/$(EXECUTABLE).exe
 
-COMPRESSED_EXECUTABLES=$(UNIX_EXECUTABLES:%=%.tar.bz2) $(WIN_EXECUTABLES:%.exe=%.zip)
+COMPRESSED_EXECUTABLES=$(UNIX_EXECUTABLES:%=%.bz2) $(WIN_EXECUTABLES:%.exe=%.zip)
 COMPRESSED_EXECUTABLE_TARGETS=$(COMPRESSED_EXECUTABLES:%=bin/%)
 
 UPLOAD_CMD = bin/tmp/$(EXECUTABLE) upload -u $(USER) -r $(EXECUTABLE) -t $(LAST_TAG) -n $(subst /,-,$(FILE)) -f bin/$(FILE)
@@ -49,8 +49,8 @@ bin/windows/amd64/$(EXECUTABLE).exe:
 
 # compressed artifacts, makes a huge difference (Go executable is ~9MB,
 # after compressing ~2MB)
-%.tar.bz2: %
-	tar -jcvf "$<.tar.bz2" "$<"
+%.bz2: %
+	bzip2 -c < "$<" > "$@"
 %.zip: %.exe
 	zip "$@" "$<"
 
