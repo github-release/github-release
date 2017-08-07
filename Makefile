@@ -8,7 +8,9 @@ EXECUTABLE := github-release
 UNIX_EXECUTABLES := \
 	darwin/amd64/$(EXECUTABLE) \
 	freebsd/amd64/$(EXECUTABLE) \
-	linux/amd64/$(EXECUTABLE)
+	linux/amd64/$(EXECUTABLE) \
+	linux/arm/7/$(EXECUTABLE)
+
 WIN_EXECUTABLES := \
 	windows/amd64/$(EXECUTABLE).exe
 
