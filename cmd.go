@@ -10,6 +10,7 @@ import (
 	"net/url"
 	"os"
 	"strconv"
+	"strings"
 
 	"github.com/aktau/github-release/github"
 )
@@ -41,12 +42,6 @@ func infocmd(opt Options) error {
 		}
 	}
 
-	renderer := renderInfoText
-
-	if opt.Info.JSON {
-		renderer = renderInfoJSON
-	}
-
 	// List releases + assets.
 	var releases []Release
 	if tag == "" {
@@ -66,10 +61,23 @@ func infocmd(opt Options) error {
 		releases = []Release{*release}
 	}
 
-	return renderer(tags, releases)
+	renderer := renderInfoText
+
+	switch {
+	case opt.Info.JSON:
+		renderer = renderInfoJSON
+	case opt.Info.Markdown:
+		renderer = renderInfoMarkdown
+		if !opt.Info.Prerelease {
+			// Exclude pre-releases unless they were requested
+			releases = filterPreReleases(releases)
+		}
+	}
+
+	return renderer(opt.Info.Repo, tags, releases)
 }
 
-func renderInfoText(tags []Tag, releases []Release) error {
+func renderInfoText(_ string, tags []Tag, releases []Release) error {
 	fmt.Println("tags:")
 	for _, tag := range tags {
 		fmt.Println("-", &tag)
@@ -83,7 +91,7 @@ func renderInfoText(tags []Tag, releases []Release) error {
 	return nil
 }
 
-func renderInfoJSON(tags []Tag, releases []Release) error {
+func renderInfoJSON(_ string, tags []Tag, releases []Release) error {
 	out := struct {
 		Tags     []Tag
 		Releases []Release
@@ -95,6 +103,43 @@ func renderInfoJSON(tags []Tag, releases []Release) error {
 	enc := json.NewEncoder(os.Stdout)
 	enc.SetIndent("", "    ")
 	return enc.Encode(&out)
+}
+
+func renderInfoMarkdown(repo string, tags []Tag, releases []Release) error {
+	tagMap := make(map[string]Tag)
+	for _, t := range tags {
+		tagMap[t.Name] = t
+	}
+
+	fmt.Printf("# %s Changelog\n", strings.ToTitle(repo))
+	fmt.Println()
+	for _, r := range releases {
+		fmt.Printf("## %s - %s\n\n", r.TagName, r.Name)
+		fmt.Printf("Published %s\n\n", r.Published)
+		fmt.Println(r.Description)
+		fmt.Println()
+		if len(r.TagName) != 0 {
+			t, ok := tagMap[r.TagName]
+			if !ok {
+				return fmt.Errorf("No definition for tag: %v in %v", r.TagName, r.Name)
+			}
+			fmt.Printf("Commit [%s](%s) Download [zip](%s)\n", t.Commit.Sha, t.Commit.Url, t.ZipBallUrl)
+			fmt.Println()
+		}
+	}
+
+	return nil
+}
+
+func filterPreReleases(releases []Release) []Release {
+	f := make([]Release, 0, len(releases))
+	for _, r := range releases {
+		if !r.Prerelease {
+			f = append(f, r)
+		}
+	}
+
+	return f
 }
 
 func uploadcmd(opt Options) error {
