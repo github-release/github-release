@@ -3,6 +3,7 @@
 package github
 
 import (
+	"crypto/tls"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -19,6 +20,17 @@ const DefaultBaseURL = "https://api.github.com"
 // Set to values > 0 to control verbosity, for debugging.
 var VERBOSITY = 0
 
+func getHTTPClient() *http.Client {
+	c := &http.Client{}
+	if len(os.Getenv("INSECURE")) > 0 {
+		c.Transport = &http.Transport{
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+		}
+	}
+
+	return c
+}
+
 // DoAuthRequest ...
 //
 // TODO: This function is amazingly ugly (separate headers, token, no API
@@ -29,7 +41,9 @@ func DoAuthRequest(method, url, mime, token string, headers map[string]string, b
 		return nil, err
 	}
 
-	resp, err := http.DefaultClient.Do(req)
+	client := getHTTPClient()
+
+	resp, err := client.Do(req)
 	if err != nil {
 		return nil, err
 	}
@@ -149,7 +163,8 @@ func (c Client) getPaginated(uri string) (io.ReadCloser, error) {
 		v.Set("access_token", c.Token)
 	}
 	u.RawQuery = v.Encode()
-	resp, err := http.Get(u.String())
+	client := getHTTPClient()
+	resp, err := client.Get(u.String())
 	if err != nil {
 		return nil, err
 	}
@@ -182,7 +197,7 @@ func (c Client) getPaginated(uri string) (io.ReadCloser, error) {
 				return // We're done.
 			}
 
-			resp, err := http.Get(URL)
+			resp, err := client.Get(URL)
 			links = linkheader.Parse(resp.Header.Get("Link"))
 			if err != nil {
 				w.CloseWithError(err)
