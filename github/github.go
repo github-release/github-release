@@ -155,7 +155,7 @@ func (c Client) getPaginated(uri string) (io.ReadCloser, error) {
 	}
 	if resp.StatusCode != http.StatusOK {
 		resp.Body.Close()
-		return nil, fmt.Errorf("expected '200 OK' but received '%v' (url: %s)", resp.Status, resp.Request.URL)
+		return nil, fmt.Errorf("expected '200 OK' but received '%v'", resp.Status)
 	}
 	vprintln("GET (top-level)", resp.Request.URL, "->", resp)
 
@@ -210,7 +210,7 @@ func (c Client) getPaginated(uri string) (io.ReadCloser, error) {
 		for resp := range responses {
 			if resp.StatusCode != http.StatusOK {
 				resp.Body.Close()
-				w.CloseWithError(fmt.Errorf("expected '200 OK' but received '%v' (url: %s)", resp.Status, resp.Request.URL))
+				w.CloseWithError(fmt.Errorf("expected '200 OK' but received '%v'", resp.Status))
 				return
 			}
 			_, err := io.Copy(w, resp.Body)
