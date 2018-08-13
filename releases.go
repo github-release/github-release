@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 	"time"
 
@@ -124,6 +125,19 @@ func ReleaseOfTag(user, repo, tag, token string) (*Release, error) {
 	}
 
 	return nil, fmt.Errorf("could not find the release corresponding to tag %s", tag)
+}
+
+func IncrementReleaseVersion(release *Release) error {
+	version, err := strconv.Atoi(release.TagName[1:])
+	version++
+
+	release.TagName = fmt.Sprintf("v%d", version)
+	release.Name = release.TagName
+	release.Description = time.Now().Format(RELEASE_DATE_FORMAT)
+
+	fmt.Printf("Release: %+v\n", release)
+
+	return err
 }
 
 /* find the release-id of the specified tag */
