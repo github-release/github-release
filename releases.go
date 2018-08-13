@@ -127,17 +127,19 @@ func ReleaseOfTag(user, repo, tag, token string) (*Release, error) {
 	return nil, fmt.Errorf("could not find the release corresponding to tag %s", tag)
 }
 
-func IncrementReleaseVersion(release *Release) error {
-	version, err := strconv.Atoi(release.TagName[1:])
-	version++
+func IncrementReleaseVersion(release *Release) *Release {
+	// Handle nil release gracefully
+	version := 0
+	if release != nil {
+		version, _ = strconv.Atoi(release.TagName[1:])
+		version++
+	} else {
+		release = &Release{}
+	}
 
 	release.TagName = fmt.Sprintf("v%d", version)
-	release.Name = release.TagName
-	release.Description = time.Now().Format(RELEASE_DATE_FORMAT)
 
-	fmt.Printf("Release: %+v\n", release)
-
-	return err
+	return release
 }
 
 /* find the release-id of the specified tag */

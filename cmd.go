@@ -384,15 +384,8 @@ func increleasecmd(opt Options) error {
 
 	vprintln("incremental release...")
 
-	release, err := LatestRelease(user, repo, token)
-	if err != nil {
-		return err
-	}
-
-	err = IncrementReleaseVersion(release)
-	if err != nil {
-		return err
-	}
+	release, _ := LatestRelease(user, repo, token)
+	release = IncrementReleaseVersion(release)
 
 	tag := nvls(cmdopt.Tag, release.TagName)
 	name := nvls(cmdopt.Name, tag)
