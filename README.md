@@ -43,8 +43,8 @@ After that you should have a `github-release` executable in your
 How to use
 ==========
 
-**NOTE**: for these examples I've [created a github
-token](https://help.github.com/articles/creating-an-access-token-for-command-line-use)
+**NOTE**: For these examples I've [created a github
+token](https://help.github.com/articles/creating-an-access-token-for-command-line-use) with a *scope* of at least '**repo / public_repo**'
 and set it as the env variable `GITHUB_TOKEN`. `github-release` will
 automatically pick it up from the environment so that you don't have to
 pass it as an argument.
