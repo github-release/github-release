@@ -236,6 +236,9 @@ func downloadcmd(opt Options) error {
 	var resp *http.Response
 	if token == "" {
 		// Use the regular github.com site if we don't have a token.
+		if latest {
+			tag = rel.TagName
+		}
 		resp, err = http.Get("https://github.com" + fmt.Sprintf("/%s/%s/releases/download/%s/%s", user, repo, tag, name))
 	} else {
 		url := nvls(EnvApiEndpoint, github.DefaultBaseURL) + fmt.Sprintf(ASSET_URI, user, repo, asset.Id)
