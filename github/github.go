@@ -145,11 +145,9 @@ func (c Client) getPaginated(uri string) (io.ReadCloser, error) {
 
 	v := u.Query()
 	v.Set("per_page", "100") // The default is 30, this makes it less likely for Github to rate-limit us.
-	if c.Token != "" {
-		v.Set("access_token", c.Token)
-	}
 	u.RawQuery = v.Encode()
-	resp, err := http.Get(u.String())
+
+	resp, err := DoAuthRequest(http.MethodGet, u.String(), "", c.Token, nil, nil)
 	if err != nil {
 		return nil, err
 	}
