@@ -16,6 +16,7 @@ import (
 
 func infocmd(opt Options) error {
 	user := nvls(opt.Info.User, EnvUser)
+	authUser := nvls(opt.Info.AuthUser, EnvAuthUser)
 	repo := nvls(opt.Info.Repo, EnvRepo)
 	token := nvls(opt.Info.Token, EnvToken)
 	tag := opt.Info.Tag
@@ -25,7 +26,7 @@ func infocmd(opt Options) error {
 	}
 
 	// Find regular git tags.
-	foundTags, err := Tags(user, repo, token)
+	foundTags, err := Tags(user, repo, authUser, token)
 	if err != nil {
 		return fmt.Errorf("could not fetch tags, %v", err)
 	}
@@ -52,14 +53,14 @@ func infocmd(opt Options) error {
 	if tag == "" {
 		// Get all releases.
 		vprintf("%v/%v: getting information for all releases\n", user, repo)
-		releases, err = Releases(user, repo, token)
+		releases, err = Releases(user, repo, authUser, token)
 		if err != nil {
 			return err
 		}
 	} else {
 		// Get only one release.
 		vprintf("%v/%v/%v: getting information for the release\n", user, repo, tag)
-		release, err := ReleaseOfTag(user, repo, tag, token)
+		release, err := ReleaseOfTag(user, repo, tag, authUser, token)
 		if err != nil {
 			return err
 		}
@@ -99,6 +100,7 @@ func renderInfoJSON(tags []Tag, releases []Release) error {
 
 func uploadcmd(opt Options) error {
 	user := nvls(opt.Upload.User, EnvUser)
+	authUser := nvls(opt.Upload.AuthUser, EnvAuthUser)
 	repo := nvls(opt.Upload.Repo, EnvRepo)
 	token := nvls(opt.Upload.Token, EnvToken)
 	tag := opt.Upload.Tag
@@ -118,7 +120,7 @@ func uploadcmd(opt Options) error {
 	}
 
 	// Find the release corresponding to the entered tag, if any.
-	rel, err := ReleaseOfTag(user, repo, tag, token)
+	rel, err := ReleaseOfTag(user, repo, tag, authUser, token)
 	if err != nil {
 		return err
 	}
@@ -130,7 +132,9 @@ func uploadcmd(opt Options) error {
 	// uploads (which regrettably happen often using the Github API). See
 	// issue #26.
 	var assets []Asset
-	err = github.Client{Token: token, BaseURL: EnvApiEndpoint}.Get(fmt.Sprintf(ASSET_RELEASE_LIST_URI, user, repo, rel.Id), &assets)
+	client := github.NewClient(authUser, token, nil)
+	client.SetBaseURL(EnvApiEndpoint)
+	err = client.Get(fmt.Sprintf(ASSET_RELEASE_LIST_URI, user, repo, rel.Id), &assets)
 	if err != nil {
 		return err
 	}
@@ -204,6 +208,7 @@ func uploadcmd(opt Options) error {
 
 func downloadcmd(opt Options) error {
 	user := nvls(opt.Download.User, EnvUser)
+	authUser := nvls(opt.Download.AuthUser, EnvAuthUser)
 	repo := nvls(opt.Download.Repo, EnvRepo)
 	token := nvls(opt.Download.Token, EnvToken)
 	tag := opt.Download.Tag
@@ -220,9 +225,9 @@ func downloadcmd(opt Options) error {
 	var rel *Release
 	var err error
 	if latest {
-		rel, err = LatestRelease(user, repo, token)
+		rel, err = LatestRelease(user, repo, authUser, token)
 	} else {
-		rel, err = ReleaseOfTag(user, repo, tag, token)
+		rel, err = ReleaseOfTag(user, repo, tag, authUser, token)
 	}
 	if err != nil {
 		return err
@@ -379,6 +384,7 @@ func releasecmd(opt Options) error {
 func editcmd(opt Options) error {
 	cmdopt := opt.Edit
 	user := nvls(cmdopt.User, EnvUser)
+	authUser := nvls(cmdopt.AuthUser, EnvAuthUser)
 	repo := nvls(cmdopt.Repo, EnvRepo)
 	token := nvls(cmdopt.Token, EnvToken)
 	tag := cmdopt.Tag
@@ -393,7 +399,7 @@ func editcmd(opt Options) error {
 		return err
 	}
 
-	id, err := IdOfTag(user, repo, tag, token)
+	id, err := IdOfTag(user, repo, tag, authUser, token)
 	if err != nil {
 		return err
 	}
@@ -456,9 +462,10 @@ func deletecmd(opt Options) error {
 		nvls(opt.Delete.Repo, EnvRepo),
 		nvls(opt.Delete.Token, EnvToken),
 		opt.Delete.Tag
+	authUser := nvls(opt.Delete.AuthUser, EnvAuthUser)
 	vprintln("deleting...")
 
-	id, err := IdOfTag(user, repo, tag, token)
+	id, err := IdOfTag(user, repo, tag, authUser, token)
 	if err != nil {
 		return err
 	}

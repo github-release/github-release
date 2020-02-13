@@ -120,6 +120,7 @@ Used libraries
 | [github.com/dustin/go-humanize](https://github.com/dustin/go-humanize)     | humanize file sizes | MIT     |
 | [github.com/tomnomnom/linkheader](https://github.com/tomnomnom/linkheader) | GH API pagination   | MIT     |
 | [github.com/voxelbrain/goptions](https://github.com/voxelbrain/goptions)   | option parsing      | BSD     |
+| [github.com/kevinburke/rest](https://github.com/kevinburke/rest)   | HTTP client      | MIT     |
 
 Todo
 ====
@@ -129,4 +130,5 @@ Todo
 Copyright
 =========
 
-Copyright (c) 2014, Nicolas Hillegeer. All rights reserved.
+Copyright (c) 2014-2017, Nicolas Hillegeer. All rights reserved.
+Copyright (c) 2020, Meter, Inc. All rights reserved.
