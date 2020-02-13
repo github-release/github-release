@@ -80,4 +80,7 @@ clean:
 	rm $(EXECUTABLE) || true
 	rm -rf bin/
 
+test:
+	go test ./...
+
 .PHONY: clean release dep install
