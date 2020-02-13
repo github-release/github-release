@@ -56,6 +56,10 @@ bin/windows/amd64/$(EXECUTABLE).exe:
 
 # git tag -a v$(RELEASE) -m 'release $(RELEASE)'
 release: clean
+ifndef GITHUB_TOKEN
+	@echo "Please set GITHUB_TOKEN in the environment to perform a release"
+	exit 1
+endif
 	$(MAKE) bin/tmp/$(EXECUTABLE) $(COMPRESSED_EXECUTABLE_TARGETS)
 	git push && git push --tags
 	git log --format=%B $(LAST_TAG) -1 | \
