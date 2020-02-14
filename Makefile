@@ -50,7 +50,7 @@ bin/windows/amd64/$(EXECUTABLE).exe:
 # compressed artifacts, makes a huge difference (Go executable is ~9MB,
 # after compressing ~2MB)
 %.bz2: %
-	bzip2 -c < "$<" > "$@"
+	bzip2 --keep "$<"
 %.zip: %.exe
 	zip "$@" "$<"
 
