@@ -314,6 +314,7 @@ func releasecmd(opt Options) error {
 	if err != nil {
 		return fmt.Errorf("can't encode release creation params, %v", err)
 	}
+	vprintln("REQUEST:", string(payload))
 	reader := bytes.NewReader(payload)
 
 	uri := fmt.Sprintf("/repos/%s/%s/releases", user, repo)
@@ -327,13 +328,6 @@ func releasecmd(opt Options) error {
 	}
 
 	vprintln("RESPONSE:", resp)
-	if resp.StatusCode != http.StatusCreated {
-		if resp.StatusCode == 422 {
-			return fmt.Errorf("github returned %v (this is probably because the release already exists)",
-				resp.Status)
-		}
-		return fmt.Errorf("github returned %v", resp.Status)
-	}
 
 	if VERBOSITY != 0 {
 		body, err := ioutil.ReadAll(resp.Body)
@@ -341,6 +335,14 @@ func releasecmd(opt Options) error {
 			return fmt.Errorf("error while reading response, %v", err)
 		}
 		vprintln("BODY:", string(body))
+	}
+
+	if resp.StatusCode != http.StatusCreated {
+		if resp.StatusCode == 422 {
+			return fmt.Errorf("github returned %v (this is probably because the release already exists)",
+				resp.Status)
+		}
+		return fmt.Errorf("github returned %v", resp.Status)
 	}
 
 	return nil
