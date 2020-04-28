@@ -129,4 +129,4 @@ Todo
 Copyright
 =========
 
-Copyright (c) 2014, Nicolas Hillegeer. All rights reserved.
+Copyright (c) 2014-2020, Nicolas Hillegeer. All rights reserved.
