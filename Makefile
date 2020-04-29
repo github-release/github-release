@@ -1,6 +1,6 @@
 LAST_TAG := $(shell git describe --abbrev=0 --tags)
 
-USER := aktau
+USER := github-release
 EXECUTABLE := github-release
 
 # only include the amd64 binaries, otherwise the github release will become
