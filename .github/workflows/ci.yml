@@ -18,9 +18,6 @@ jobs:
     # staticcheck needs this for GOPATH
     - run: echo "::set-env name=GOPATH::$GITHUB_WORKSPACE"
     - run: echo "::set-env name=PATH::$GITHUB_WORKSPACE/bin:$PATH"
-    - name: Download dependencies
-      run: go get -t -v ./...
-      working-directory: './src/github.com/github-release/github-release'
     - name: Run tests
       run: make test
       working-directory: './src/github.com/github-release/github-release'
