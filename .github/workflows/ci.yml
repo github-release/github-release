@@ -19,5 +19,5 @@ jobs:
     - run: echo "::set-env name=GOPATH::$GITHUB_WORKSPACE"
     - run: echo "::set-env name=PATH::$GITHUB_WORKSPACE/bin:$PATH"
     - name: Run tests
-      run: make test
+      run: make lint test
       working-directory: './src/github.com/github-release/github-release'

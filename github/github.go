@@ -158,7 +158,7 @@ func init() {
 }
 
 // Caller is responsible for reading and closing the response body.
-func (c Client) do(r *http.Request) (*http.Response, error) {
+func (c Client) Do(r *http.Request) (*http.Response, error) {
 	// Pulled this out of client.go:Do because we need to read the response
 	// headers.
 	var res *http.Response
@@ -217,7 +217,7 @@ func (c Client) getPaginated(uri string) (io.ReadCloser, error) {
 	if err != nil {
 		return nil, err
 	}
-	resp, err := c.do(req)
+	resp, err := c.Do(req)
 	if err != nil {
 		return nil, err
 	}
@@ -251,7 +251,7 @@ func (c Client) getPaginated(uri string) (io.ReadCloser, error) {
 				w.CloseWithError(err)
 				return
 			}
-			resp, err := c.do(req)
+			resp, err := c.Do(req)
 			if err != nil {
 				w.CloseWithError(err)
 				return
