@@ -283,7 +283,7 @@ func (c Client) getPaginated(uri string) (io.ReadCloser, error) {
 		for resp := range responses {
 			if resp.StatusCode != http.StatusOK {
 				resp.Body.Close()
-				w.CloseWithError(fmt.Errorf("expected '200 OK' but received '%v' (url: %s)", resp.Status, resp.Request.URL))
+				w.CloseWithError(fmt.Errorf("expected '200 OK' but received '%v' (%s to %s)", resp.Status, resp.Request.Method, resp.Request.URL.Path))
 				return
 			}
 			_, err := io.Copy(w, resp.Body)
