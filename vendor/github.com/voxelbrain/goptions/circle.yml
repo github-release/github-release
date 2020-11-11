@@ -1,0 +1,4 @@
+test:
+  override:
+    - go list -f "{{range .TestImports}}{{.}} {{end}}" . | xargs -r go get
+    - go test

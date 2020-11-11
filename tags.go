@@ -2,10 +2,12 @@ package main
 
 import (
 	"fmt"
+
+	"github.com/github-release/github-release/github"
 )
 
 const (
-	TAGS_URI = "/repos/%s/%s/tags%s"
+	TAGS_URI = "/repos/%s/%s/tags"
 )
 
 type Tag struct {
@@ -19,18 +21,10 @@ func (t *Tag) String() string {
 	return t.Name + " (commit: " + t.Commit.Url + ")"
 }
 
-/* get the tags associated with a repo */
-func Tags(user, repo, token string) ([]Tag, error) {
+// Get the tags associated with a repo.
+func Tags(user, repo, authUser, token string) ([]Tag, error) {
 	var tags []Tag
-
-	if token != "" {
-		token = "?access_token=" + token
-	}
-
-	err := GithubGet(fmt.Sprintf(TAGS_URI, user, repo, token), &tags)
-	if err != nil {
-		return nil, err
-	}
-
-	return tags, nil
+	client := github.NewClient(authUser, token, nil)
+	client.SetBaseURL(EnvApiEndpoint)
+	return tags, client.Get(fmt.Sprintf(TAGS_URI, user, repo), &tags)
 }
