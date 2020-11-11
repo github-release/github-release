@@ -41,21 +41,26 @@ func infocmd(opt Options) error {
 		}
 	}
 
-	// Find regular git tags.
-	foundTags, err := Tags(user, repo, authUser, token)
-	if err != nil {
-		return fmt.Errorf("could not fetch tags, %v", err)
-	}
-	if len(foundTags) == 0 {
-		return fmt.Errorf("no tags available for %v/%v", user, repo)
-	}
-
-	tags := foundTags[:0]
-	for _, t := range foundTags {
-		// If the user only requested one tag, filter out the rest.
-		if tag == "" || t.Name == tag {
-			tags = append(tags, t)
+	var err error
+	var tags []Tag
+	if tag == "" {
+		// Find regular git tags.
+		foundTags, err := Tags(user, repo, authUser, token)
+		if err != nil {
+			return fmt.Errorf("could not fetch tags, %v", err)
 		}
+		if len(foundTags) == 0 {
+			return fmt.Errorf("no tags available for %v/%v", user, repo)
+		}
+
+		tags = foundTags
+	} else {
+		// If the user only requested one tag, filter out the rest.
+		foundTag, err := TagOfTag(user, repo, tag, authUser, token)
+		if err != nil {
+			return fmt.Errorf("could not fetch tags, %v", err)
+		}
+		tags = []Tag{*foundTag}
 	}
 
 	renderer := renderInfoText
