@@ -5,8 +5,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/github-release/github-release/github"
 	"github.com/dustin/go-humanize"
+	"github.com/github-release/github-release/github"
 )
 
 const (
@@ -116,15 +116,24 @@ func LatestRelease(user, repo, authUser, token string) (*Release, error) {
 }
 
 func ReleaseOfTag(user, repo, tag, authUser, token string) (*Release, error) {
-	releases, err := Releases(user, repo, authUser, token)
-	if err != nil {
-		return nil, err
-	}
+	var releases []Release
+	client := github.NewClient(authUser, token, nil)
+	client.SetBaseURL(EnvApiEndpoint)
+	url := fmt.Sprintf(RELEASE_LIST_URI, user, repo)
 
-	for _, release := range releases {
-		if release.TagName == tag {
-			return &release, nil
+	for url != "" {
+		next, err := client.GetPaginated(url, 1, &releases)
+		if err != nil {
+			return nil, err
 		}
+
+		for _, release := range releases {
+			if release.TagName == tag {
+				return &release, nil
+			}
+		}
+
+		url = next
 	}
 
 	return nil, fmt.Errorf("could not find the release corresponding to tag %s", tag)

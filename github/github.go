@@ -67,12 +67,21 @@ func (c Client) SetBaseURL(baseurl string) {
 	c.client.Base = baseurl
 }
 
+func (c Client) Get(uri string, v interface{}) error {
+	_, err := c.GetPaginated(uri, -1, v)
+	return err
+}
+
 // Get fetches uri (relative URL) from the GitHub API and unmarshals the
 // response into v. It takes care of pagination transparantly.
-func (c Client) Get(uri string, v interface{}) error {
-	rc, err := c.getPaginated(uri)
+func (c Client) GetPaginated(uri string, limit int, v interface{}) (string, error) {
+	rc, next, err := c.getPaginated(uri, limit)
 	if err != nil {
-		return err
+		return "", err
+	}
+	if next == nil {
+		url := ""
+		next = &url
 	}
 	defer rc.Close()
 	var r io.Reader = rc
@@ -115,7 +124,7 @@ func (c Client) Get(uri string, v interface{}) error {
 		// Not a slice, not going to handle special pagination JSON stream
 		// semantics since it likely wouldn't work properly anyway. If this
 		// is a non-paginated stream, it should work.
-		return json.NewDecoder(r).Decode(v)
+		return *next, json.NewDecoder(r).Decode(v)
 	}
 	t = t.Elem() // Extract the type of the slice's elements.
 
@@ -125,9 +134,9 @@ func (c Client) Get(uri string, v interface{}) error {
 		tok, err := dec.Token()
 		if err != nil {
 			if err == io.EOF {
-				return nil // Natural end of the JSON stream.
+				return *next, nil // Natural end of the JSON stream.
 			}
-			return err
+			return *next, err
 		}
 		vprintf("TOKEN %T: %v\n", tok, tok)
 		// Check for tokens until we get an opening array brace. If we're
@@ -141,7 +150,7 @@ func (c Client) Get(uri string, v interface{}) error {
 		for dec.More() {
 			it := reflect.New(t) // Interface to a valid pointer to an object of the same type as the slice elements.
 			if err := dec.Decode(it.Interface()); err != nil {
-				return err
+				return *next, err
 			}
 			vprintf("OBJECT %T: %v\n", it.Interface(), it)
 			sl.Set(reflect.Append(sl, it.Elem()))
@@ -202,12 +211,12 @@ func (c Client) NewRequest(method, uri string, body io.Reader) (*http.Request, e
 //
 // TODO: Rework the API so we can cleanly append per_page=100 as a URL
 // parameter.
-func (c Client) getPaginated(uri string) (io.ReadCloser, error) {
+func (c Client) getPaginated(uri string, limit int) (io.ReadCloser, *string, error) {
 	// Parse the passed-in URI to make sure we don't lose any values when
 	// setting our own params.
 	u, err := url.Parse(uri)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	v := u.Query()
@@ -215,21 +224,22 @@ func (c Client) getPaginated(uri string) (io.ReadCloser, error) {
 	u.RawQuery = v.Encode()
 	req, err := c.NewRequest("GET", u.String(), nil)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	resp, err := c.Do(req)
+	processed := 1
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	vprintln("GET (top-level)", resp.Request.URL, "->", resp)
 
 	// If the HTTP response is paginated, it will contain a Link header.
 	links := linkheader.Parse(resp.Header.Get("Link"))
 	if len(links) == 0 {
-		return resp.Body, nil // No pagination.
+		return resp.Body, nil, nil // No pagination.
 	}
 
-	// In this case, fetch all pages and concatenate them.
+	// In this case, fetch <limit> pages and concatenate them.
 	r, w := io.Pipe()
 	done := make(chan struct{})               // Backpressure from the pipe writer.
 	responses := make(chan *http.Response, 5) // Allow 5 concurrent HTTP requests.
@@ -238,12 +248,17 @@ func (c Client) getPaginated(uri string) (io.ReadCloser, error) {
 	// URL fetcher goroutine. Fetches paginated responses until no more
 	// pages can be found. Closes the write end of the pipe if fetching a
 	// page fails.
+	var nextLinkURL string
 	go func() {
 		defer close(responses) // Signal that no more requests are coming.
 		for len(links) > 0 {
-			nextLinkURL := nextLink(links)
+			nextLinkURL = nextLink(links)
 			if nextLinkURL == "" {
 				return // We're done.
+			}
+
+			if limit > 0 && processed >= limit {
+				return // hit limit. done
 			}
 
 			req, err := c.NewRequest("GET", nextLinkURL, nil)
@@ -252,6 +267,7 @@ func (c Client) getPaginated(uri string) (io.ReadCloser, error) {
 				return
 			}
 			resp, err := c.Do(req)
+			processed += 1
 			if err != nil {
 				w.CloseWithError(err)
 				return
@@ -297,7 +313,7 @@ func (c Client) getPaginated(uri string) (io.ReadCloser, error) {
 		w.Close()
 	}()
 
-	return r, nil
+	return r, &nextLinkURL, nil
 }
 
 // Create a new request that sends the auth token.
