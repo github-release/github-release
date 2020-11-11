@@ -11,7 +11,7 @@ import (
 	"os"
 	"strconv"
 
-	"github.com/github-release/github-release/github"
+	"github.com/mistsys/github-release/github"
 )
 
 func infocmd(opt Options) error {
