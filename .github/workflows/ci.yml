@@ -4,7 +4,7 @@ jobs:
   test:
     strategy:
       matrix:
-        go-version: [1.13.x, 1.14.x]
+        go-version: [1.13.x, 1.14.x, 1.15.x]
         platform: [ubuntu-latest]
     runs-on: ${{ matrix.platform }}
     steps:
@@ -16,8 +16,8 @@ jobs:
       with:
          path: './src/github.com/github-release/github-release'
     # staticcheck needs this for GOPATH
-    - run: echo "::set-env name=GOPATH::$GITHUB_WORKSPACE"
-    - run: echo "::set-env name=PATH::$GITHUB_WORKSPACE/bin:$PATH"
+    - run: echo "GOPATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
+    - run: echo "PATH=$GITHUB_WORKSPACE/bin:$PATH" >> $GITHUB_ENV
     - name: Run tests
       run: make lint test
       working-directory: './src/github.com/github-release/github-release'
