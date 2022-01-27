@@ -9,8 +9,10 @@ EXECUTABLE := github-release
 # too big
 UNIX_EXECUTABLES := \
 	darwin/amd64/$(EXECUTABLE) \
+	darwin/arm64/$(EXECUTABLE) \
 	freebsd/amd64/$(EXECUTABLE) \
 	linux/amd64/$(EXECUTABLE)
+	linux/arm64/$(EXECUTABLE)
 WIN_EXECUTABLES := \
 	windows/amd64/$(EXECUTABLE).exe
 
@@ -48,6 +50,12 @@ bin/linux/amd64/$(EXECUTABLE):
 	GOARCH=amd64 GOOS=linux go build -o "$@"
 bin/windows/amd64/$(EXECUTABLE).exe:
 	GOARCH=amd64 GOOS=windows go build -o "$@"
+
+# arm64
+bin/darwin/arm64/$(EXECUTABLE):
+	GOARCH=arm64 GOOS=darwin go build -o "$@"
+bin/linux/arm64/$(EXECUTABLE):
+	GOARCH=arm64 GOOS=linux go build -o "$@"
 
 # compressed artifacts, makes a huge difference (Go executable is ~9MB,
 # after compressing ~2MB)
