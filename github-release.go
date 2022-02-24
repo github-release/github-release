@@ -37,6 +37,7 @@ type Options struct {
 		Label    string   `goptions:"-l, --label, description='Label (description) of the file'"`
 		File     *os.File `goptions:"-f, --file, description='File to upload (use - for stdin)', rdonly, obligatory"`
 		Replace  bool     `goptions:"-R, --replace, description='Replace asset with same name if it already exists (WARNING: not atomic, failure to upload will remove the original asset too)'"`
+		Latest   bool     `goptions:"-L, --latest, description='Upload to latest release (required if tag is not specified)',mutexgroup='input'"`
 	} `goptions:"upload"`
 	Release struct {
 		Token      string `goptions:"-s, --security-token, description='Github token (required if $GITHUB_TOKEN not set)'"`

@@ -128,6 +128,7 @@ func uploadcmd(opt Options) error {
 	name := opt.Upload.Name
 	label := opt.Upload.Label
 	file := opt.Upload.File
+	latest := opt.Upload.Latest
 
 	vprintln("uploading...")
 
@@ -141,7 +142,13 @@ func uploadcmd(opt Options) error {
 	}
 
 	// Find the release corresponding to the entered tag, if any.
-	rel, err := ReleaseOfTag(user, repo, tag, authUser, token)
+	var rel *Release
+	var err error
+	if latest {
+		rel, err = LatestRelease(user, repo, authUser, token)
+	} else {
+		rel, err = ReleaseOfTag(user, repo, tag, authUser, token)
+	}
 	if err != nil {
 		return err
 	}
