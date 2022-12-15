@@ -38,15 +38,16 @@ type Options struct {
 		Replace  bool     `goptions:"-R, --replace, description='Replace asset with same name if it already exists (WARNING: not atomic, failure to upload will remove the original asset too)'"`
 	} `goptions:"upload"`
 	Release struct {
-		Token      string `goptions:"-s, --security-token, description='Github token (required if $GITHUB_TOKEN not set)'"`
-		User       string `goptions:"-u, --user, description='Github repo user or organisation (required if $GITHUB_USER not set)'"`
-		Repo       string `goptions:"-r, --repo, description='Github repo (required if $GITHUB_REPO not set)'"`
-		Tag        string `goptions:"-t, --tag, obligatory, description='Git tag to create a release from'"`
-		Name       string `goptions:"-n, --name, description='Name of the release (defaults to tag)'"`
-		Desc       string `goptions:"-d, --description, description='Release description, use - for reading a description from stdin (defaults to tag)'"`
-		Target     string `goptions:"-c, --target, description='Commit SHA or branch to create release of (defaults to the repository default branch)'"`
-		Draft      bool   `goptions:"--draft, description='The release is a draft'"`
-		Prerelease bool   `goptions:"-p, --pre-release, description='The release is a pre-release'"`
+		Token                string `goptions:"-s, --security-token, description='Github token (required if $GITHUB_TOKEN not set)'"`
+		User                 string `goptions:"-u, --user, description='Github repo user or organisation (required if $GITHUB_USER not set)'"`
+		Repo                 string `goptions:"-r, --repo, description='Github repo (required if $GITHUB_REPO not set)'"`
+		Tag                  string `goptions:"-t, --tag, obligatory, description='Git tag to create a release from'"`
+		Name                 string `goptions:"-n, --name, description='Name of the release (defaults to tag)'"`
+		Desc                 string `goptions:"-d, --description, description='Release description, use - for reading a description from stdin (defaults to tag)'"`
+		Target               string `goptions:"-c, --target, description='Commit SHA or branch to create release of (defaults to the repository default branch)'"`
+		Draft                bool   `goptions:"--draft, description='The release is a draft'"`
+		Prerelease           bool   `goptions:"-p, --pre-release, description='The release is a pre-release'"`
+		GenerateReleaseNotes bool   `goptions:"-g, --generate-release-notes, description='Generate name and description if not given'"`
 	} `goptions:"release"`
 	Edit struct {
 		Token      string `goptions:"-s, --security-token, description='Github token (required if $GITHUB_TOKEN not set)'"`
