@@ -317,11 +317,16 @@ func releasecmd(opt Options) error {
 	repo := nvls(cmdopt.Repo, EnvRepo)
 	token := nvls(cmdopt.Token, EnvToken)
 	tag := cmdopt.Tag
-	name := nvls(cmdopt.Name, tag)
-	desc := nvls(cmdopt.Desc, tag)
+	name := cmdopt.Name
+	desc := cmdopt.Desc
 	target := nvls(cmdopt.Target)
 	draft := cmdopt.Draft
 	prerelease := cmdopt.Prerelease
+	generateReleaseNotes := cmdopt.GenerateReleaseNotes
+	if !generateReleaseNotes {
+		name = nvls(name, tag)
+		desc = nvls(desc, tag)
+	}
 
 	vprintln("releasing...")
 
@@ -339,12 +344,13 @@ func releasecmd(opt Options) error {
 	}
 
 	params := ReleaseCreate{
-		TagName:         tag,
-		TargetCommitish: target,
-		Name:            name,
-		Body:            desc,
-		Draft:           draft,
-		Prerelease:      prerelease,
+		TagName:              tag,
+		TargetCommitish:      target,
+		Name:                 name,
+		Body:                 desc,
+		Draft:                draft,
+		Prerelease:           prerelease,
+		GenerateReleaseNotes: generateReleaseNotes,
 	}
 
 	/* encode params as json */

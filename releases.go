@@ -59,12 +59,13 @@ func (r *Release) String() string {
 }
 
 type ReleaseCreate struct {
-	TagName         string `json:"tag_name"`
-	TargetCommitish string `json:"target_commitish,omitempty"`
-	Name            string `json:"name"`
-	Body            string `json:"body"`
-	Draft           bool   `json:"draft"`
-	Prerelease      bool   `json:"prerelease"`
+	TagName              string `json:"tag_name"`
+	TargetCommitish      string `json:"target_commitish,omitempty"`
+	Name                 string `json:"name"`
+	Body                 string `json:"body"`
+	Draft                bool   `json:"draft"`
+	Prerelease           bool   `json:"prerelease"`
+	GenerateReleaseNotes bool   `json:"generate_release_notes"`
 }
 
 func Releases(user, repo, authUser, token string) ([]Release, error) {
