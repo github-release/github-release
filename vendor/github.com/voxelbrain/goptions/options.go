@@ -6,6 +6,7 @@ import (
 	"reflect"
 	"strconv"
 	"strings"
+	"time"
 )
 
 type optionFunc func(f *Flag, option, value string) error
@@ -18,6 +19,9 @@ var (
 			"description": description,
 			"obligatory":  obligatory,
 			"mutexgroup":  mutexgroup,
+		},
+		reflect.TypeOf(new(time.Time)).Elem(): optionMap{
+			"format": time_format,
 		},
 		reflect.TypeOf(new(*os.File)).Elem(): optionMap{
 			"create": initOptionMeta(file_create, "file_mode", 0),
@@ -110,6 +114,11 @@ func file_perm(f *Flag, option, value string) error {
 		return err
 	}
 	f.optionMeta["file_perm"] = uint32(perm)
+	return nil
+}
+
+func time_format(f *Flag, option, value string) error {
+	f.optionMeta["format"] = value
 	return nil
 }
 

@@ -1,4 +1,9 @@
-test:
-  override:
-    - go list -f "{{range .TestImports}}{{.}} {{end}}" . | xargs -r go get
-    - go test
+version: 2
+jobs:
+  build:
+    docker:
+      - image: circleci/golang
+    steps:
+      - checkout
+      - run: go get -d .
+      - run: go test

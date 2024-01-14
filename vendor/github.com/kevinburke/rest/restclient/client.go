@@ -5,11 +5,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net"
 	"net/http"
 	"runtime"
 	"strings"
+	"sync/atomic"
 	"time"
 
 	"github.com/kevinburke/rest/resterror"
@@ -23,7 +23,7 @@ var JSON UploadType = "application/json"
 // FormURLEncoded specifies you'd like to upload form-urlencoded data.
 var FormURLEncoded UploadType = "application/x-www-form-urlencoded"
 
-const Version = "2.5"
+const Version = "2.9"
 
 var ua string
 
@@ -37,8 +37,6 @@ func init() {
 type Client struct {
 	// Username for use in HTTP Basic Auth
 	ID string
-	// Password for use in HTTP Basic Auth
-	Token string
 	// HTTP Client to use for making requests
 	Client *http.Client
 	// The base URL for all requests to this API, for example,
@@ -52,32 +50,48 @@ type Client struct {
 	ErrorParser func(*http.Response) error
 
 	useBearerAuth bool
+
+	// Password for use in HTTP Basic Auth, or single token in Bearer auth
+	token atomic.Value
+}
+
+func (c *Client) Token() string {
+	l := c.token.Load()
+	s, _ := l.(string)
+	return s
 }
 
 // New returns a new Client with HTTP Basic Auth with the given user and
 // password. Base is the scheme+domain to hit for all requests.
 func New(user, pass, base string) *Client {
-	return &Client{
+
+	c := &Client{
 		ID:          user,
-		Token:       pass,
 		Client:      defaultHttpClient,
 		Base:        base,
 		UploadType:  JSON,
 		ErrorParser: DefaultErrorParser,
 	}
+	c.token.Store(pass)
+	return c
 }
 
 // NewBearerClient returns a new Client configured to use Bearer authentication.
 func NewBearerClient(token, base string) *Client {
-	return &Client{
+	c := &Client{
 		ID:            "",
-		Token:         token,
 		Client:        defaultHttpClient,
 		Base:          base,
 		UploadType:    JSON,
 		ErrorParser:   DefaultErrorParser,
 		useBearerAuth: true,
 	}
+	c.token.Store(token)
+	return c
+}
+
+func (c *Client) UpdateToken(newToken string) {
+	c.token.Store(newToken)
 }
 
 var defaultDialer = &net.Dialer{
@@ -127,21 +141,23 @@ func (c *Client) DialSocket(socket string, transport *http.Transport) {
 	}
 }
 
-// NewRequest creates a new Request and sets basic auth based on the client's
-// authentication information.
-func (c *Client) NewRequest(method, path string, body io.Reader) (*http.Request, error) {
+func (c *Client) NewRequestWithContext(ctx context.Context, method, path string, body io.Reader) (*http.Request, error) {
+	if c == nil {
+		panic("cannot call NewRequestWithContext on nil *Client")
+	}
 	// see for example https://github.com/meterup/github-release/issues/1 - if
 	// the path contains the full URL including the base, strip it out
 	path = strings.TrimPrefix(path, c.Base)
-	req, err := http.NewRequest(method, c.Base+path, body)
+	req, err := http.NewRequestWithContext(ctx, method, c.Base+path, body)
 	if err != nil {
 		return nil, err
 	}
+	token := c.Token()
 	switch {
-	case c.useBearerAuth && c.Token != "":
-		req.Header.Add("Authorization", "Bearer "+c.Token)
-	case !c.useBearerAuth && (c.ID != "" || c.Token != ""):
-		req.SetBasicAuth(c.ID, c.Token)
+	case c.useBearerAuth && token != "":
+		req.Header.Add("Authorization", "Bearer "+token)
+	case !c.useBearerAuth && (c.ID != "" || token != ""):
+		req.SetBasicAuth(c.ID, token)
 	}
 	req.Header.Add("User-Agent", ua)
 	req.Header.Add("Accept", "application/json")
@@ -151,9 +167,15 @@ func (c *Client) NewRequest(method, path string, body io.Reader) (*http.Request,
 		if uploadType == "" {
 			uploadType = JSON
 		}
-		req.Header.Add("Content-Type", fmt.Sprintf("%s; charset=utf-8", uploadType))
+		req.Header.Add("Content-Type", string(uploadType)+"; charset=utf-8")
 	}
 	return req, nil
+}
+
+// NewRequest creates a new Request and sets basic auth based on the client's
+// authentication information.
+func (c *Client) NewRequest(method, path string, body io.Reader) (*http.Request, error) {
+	return c.NewRequestWithContext(context.Background(), method, path, body)
 }
 
 // Do performs the HTTP request. If the HTTP response is in the 2xx range,
@@ -179,7 +201,7 @@ func (c *Client) Do(r *http.Request, v interface{}) error {
 		return DefaultErrorParser(res)
 	}
 
-	resBody, err := ioutil.ReadAll(res.Body)
+	resBody, err := io.ReadAll(res.Body)
 	if err != nil {
 		return err
 	}
@@ -193,7 +215,7 @@ func (c *Client) Do(r *http.Request, v interface{}) error {
 // DefaultErrorParser attempts to parse the response body as a rest.Error. If
 // it cannot do so, return an error containing the entire response body.
 func DefaultErrorParser(resp *http.Response) error {
-	resBody, err := ioutil.ReadAll(resp.Body)
+	resBody, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return err
 	}

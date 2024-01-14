@@ -26,6 +26,7 @@ var (
 		reflect.TypeOf(new(*net.TCPAddr)).Elem():  tcpAddrValueParser,
 		reflect.TypeOf(new(*url.URL)).Elem():      urlValueParser,
 		reflect.TypeOf(new(time.Duration)).Elem(): durationValueParser,
+		reflect.TypeOf(new(time.Time)).Elem():     timeValueParser,
 	}
 )
 
@@ -145,6 +146,15 @@ func urlValueParser(f *Flag, val string) (reflect.Value, error) {
 
 func durationValueParser(f *Flag, val string) (reflect.Value, error) {
 	d, err := time.ParseDuration(val)
+	return reflect.ValueOf(d), err
+}
+
+func timeValueParser(f *Flag, val string) (reflect.Value, error) {
+	format := time.RFC3339
+	if altFormat, ok := f.optionMeta["format"]; ok {
+		format = altFormat.(string)
+	}
+	d, err := time.Parse(format, val)
 	return reflect.ValueOf(d), err
 }
 
