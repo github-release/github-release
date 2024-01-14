@@ -91,4 +91,4 @@ lint:
 test:
 	go test ./...
 
-.PHONY: clean release dep install
+.PHONY: clean release install
