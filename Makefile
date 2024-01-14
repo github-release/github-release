@@ -74,13 +74,7 @@ endif
 			-t $(LAST_TAG) -n $(LAST_TAG) -d - || true && \
 		$(foreach FILE,$(COMPRESSED_EXECUTABLES),$(UPLOAD_CMD);)"
 
-# install and/or update all dependencies, run this from the project directory
-# go get -u ./...
-# go test -i ./
-dep:
-	go list -f '{{join .Deps "\n"}}' | xargs go list -e -f '{{if not .Standard}}{{.ImportPath}}{{end}}' | xargs go get -u
-
-$(EXECUTABLE): dep
+$(EXECUTABLE):
 	go build -o "$@"
 
 install:
