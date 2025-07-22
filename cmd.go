@@ -394,6 +394,71 @@ func releasecmd(opt Options) error {
 	return nil
 }
 
+func increleasecmd(opt Options) error {
+	cmdopt := opt.IncRelease
+	user := nvls(cmdopt.User, EnvUser)
+	repo := nvls(cmdopt.Repo, EnvRepo)
+	token := nvls(cmdopt.Token, EnvToken)
+
+	vprintln("incremental release...")
+
+	release, _ := LatestRelease(user, repo, token)
+	release = IncrementReleaseVersion(release)
+
+	tag := nvls(cmdopt.Tag, release.TagName)
+	name := nvls(cmdopt.Name, tag)
+	desc := nvls(cmdopt.Desc, tag)
+	target := nvls(cmdopt.Target)
+	draft := cmdopt.Draft
+	prerelease := cmdopt.Prerelease
+
+	if err := ValidateCredentials(user, repo, token, tag); err != nil {
+		return err
+	}
+
+	params := ReleaseCreate{
+		TagName:         release.TagName,
+		TargetCommitish: target,
+		Name:            name,
+		Body:            desc,
+		Draft:           draft,
+		Prerelease:      prerelease,
+	}
+
+	/* encode params as json */
+	payload, err := json.Marshal(params)
+	if err != nil {
+		return fmt.Errorf("can't encode release creation params, %v", err)
+	}
+	reader := bytes.NewReader(payload)
+
+	URL := nvls(EnvApiEndpoint, github.DefaultBaseURL) + fmt.Sprintf("/repos/%s/%s/releases", user, repo)
+	resp, err := github.DoAuthRequest("POST", URL, "application/json", token, nil, reader)
+	if err != nil {
+		return fmt.Errorf("while submitting %v, %v", string(payload), err)
+	}
+	defer resp.Body.Close()
+
+	vprintln("RESPONSE:", resp)
+	if resp.StatusCode != http.StatusCreated {
+		if resp.StatusCode == 422 {
+			return fmt.Errorf("github returned %v (this is probably because the release already exists)",
+				resp.Status)
+		}
+		return fmt.Errorf("github returned %v", resp.Status)
+	}
+
+	if VERBOSITY != 0 {
+		body, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			return fmt.Errorf("error while reading response, %v", err)
+		}
+		vprintln("BODY:", string(body))
+	}
+
+	return nil
+}
+
 func editcmd(opt Options) error {
 	cmdopt := opt.Edit
 	user := nvls(cmdopt.User, EnvUser)

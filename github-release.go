@@ -49,6 +49,17 @@ type Options struct {
 		Prerelease           bool   `goptions:"-p, --pre-release, description='The release is a pre-release'"`
 		GenerateReleaseNotes bool   `goptions:"-g, --generate-release-notes, description='Generate name and description if not given'"`
 	} `goptions:"release"`
+	IncRelease struct {
+		Token      string `goptions:"-s, --security-token, description='Github token (required if $GITHUB_TOKEN not set)'"`
+		User       string `goptions:"-u, --user, description='Github repo user or organisation (required if $GITHUB_USER not set)'"`
+		Repo       string `goptions:"-r, --repo, description='Github repo (required if $GITHUB_REPO not set)'"`
+		Tag        string `goptions:"-t, --tag, description='Git tag to create a release from'"`
+		Name       string `goptions:"-n, --name, description='Name of the release (defaults to tag)'"`
+		Desc       string `goptions:"-d, --description, description='Release description, use - for reading a description from stdin (defaults to tag)'"`
+		Target     string `goptions:"-c, --target, description='Commit SHA or branch to create release of (defaults to the repository default branch)'"`
+		Draft      bool   `goptions:"--draft, description='The release is a draft'"`
+		Prerelease bool   `goptions:"-p, --pre-release, description='The release is a pre-release'"`
+	} `goptions:"increlease"`
 	Edit struct {
 		Token      string `goptions:"-s, --security-token, description='Github token (required if $GITHUB_TOKEN not set)'"`
 		User       string `goptions:"-u, --user, description='Github repo user or organisation (required if $GITHUB_USER not set)'"`
@@ -80,12 +91,13 @@ type Options struct {
 type Command func(Options) error
 
 var commands = map[goptions.Verbs]Command{
-	"download": downloadcmd,
-	"upload":   uploadcmd,
-	"release":  releasecmd,
-	"edit":     editcmd,
-	"delete":   deletecmd,
-	"info":     infocmd,
+	"download":   downloadcmd,
+	"upload":     uploadcmd,
+	"release":    releasecmd,
+	"increlease": increleasecmd,
+	"edit":       editcmd,
+	"delete":     deletecmd,
+	"info":       infocmd,
 }
 
 var (
