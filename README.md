@@ -64,14 +64,21 @@ releases:
 - v0.1.0, name: 'hoary ungar', description: 'something something dark side 2', id: 166740, tagged: 29/01/2014 at 14:27, published: 30/01/2014 at 16:20, draft: ✔, prerelease: ✗
   - artifact: github.go, downloads: 0, state: uploaded, type: application/octet-stream, size: 1.9KB, id: 68616
 
-# create a formal release
+# create a draft release (or a published release if you omit the --draft flag)
 $ github-release release \
     --user aktau \
     --repo gofinance \
     --tag v0.1.0 \
     --name "the wolf of source street" \
     --description "Not a movie, contrary to popular opinion. Still, my first release!" \
+    --draft \
     --pre-release
+
+# move draft to published state
+$ github-release publish \
+    --user aktau \
+    --repo gofinance \
+    --tag v0.1.0
 
 # you've made a mistake, but you can edit the release without
 # having to delete it first (this also means you can edit without having
