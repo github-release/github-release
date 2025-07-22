@@ -3,7 +3,7 @@
 set -euo pipefail
 
 main() {
-    apt-get update && apt-get install zip
+    apt-get update && apt-get install -y zip bzip2
     git branch --set-upstream-to=origin/master release
     set -x
     exec /bin/bash -c "$@"

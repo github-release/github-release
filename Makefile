@@ -1,6 +1,6 @@
 SHELL=/bin/bash -o pipefail
 
-LAST_TAG := $(shell git describe --abbrev=0 --tags)
+LAST_TAG ?= $(shell git describe --abbrev=0 --tags)
 
 USER := github-release
 EXECUTABLE := github-release
@@ -64,9 +64,10 @@ ifndef GITHUB_TOKEN
 endif
 	docker run --rm --volume $(PWD)/var/cache:/root/.cache/go-build \
 		--env GITHUB_TOKEN=$(GITHUB_TOKEN) \
-		--volume "$(PWD)":/go/src/github.com/github-release/github-release \
-		--workdir /go/src/github.com/github-release/github-release \
-		meterup/ubuntu-golang:latest \
+		--env DEBUG_HTTP_TRAFFIC=true \
+		--volume "$(PWD)":/app \
+		--workdir /app \
+		golang:latest \
 		./release \
 		"$(MAKE) bin/tmp/$(EXECUTABLE) $(COMPRESSED_EXECUTABLE_TARGETS) && \
 		git log --format=%B $(LAST_TAG) -1 | \
