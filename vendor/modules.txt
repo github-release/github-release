@@ -1,0 +1,13 @@
+# github.com/dustin/go-humanize v1.0.1
+## explicit; go 1.16
+github.com/dustin/go-humanize
+# github.com/kevinburke/rest v0.0.0-20250718180114-1a15e4f2364f
+## explicit; go 1.23.0
+github.com/kevinburke/rest/restclient
+github.com/kevinburke/rest/resterror
+# github.com/tomnomnom/linkheader v0.0.0-20180905144013-02ca5825eb80
+## explicit
+github.com/tomnomnom/linkheader
+# github.com/voxelbrain/goptions v0.0.0-20180630082107-58cddc247ea2
+## explicit
+github.com/voxelbrain/goptions
