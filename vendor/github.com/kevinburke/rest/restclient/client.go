@@ -23,7 +23,7 @@ var JSON UploadType = "application/json"
 // FormURLEncoded specifies you'd like to upload form-urlencoded data.
 var FormURLEncoded UploadType = "application/x-www-form-urlencoded"
 
-const Version = "2.9"
+const Version = "2.12.0"
 
 var ua string
 
