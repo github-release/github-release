@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 	"time"
 
@@ -129,6 +130,21 @@ func ReleaseOfTag(user, repo, tag, authUser, token string) (*Release, error) {
 	}
 
 	return nil, fmt.Errorf("could not find the release corresponding to tag %s", tag)
+}
+
+func IncrementReleaseVersion(release *Release) *Release {
+	// Handle nil release gracefully
+	version := 0
+	if release != nil {
+		version, _ = strconv.Atoi(release.TagName[1:])
+		version++
+	} else {
+		release = &Release{}
+	}
+
+	release.TagName = fmt.Sprintf("v%d", version)
+
+	return release
 }
 
 /* find the release-id of the specified tag */
